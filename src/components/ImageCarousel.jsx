@@ -1,31 +1,33 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
-import styled, { keyframes } from 'styled-components';
-import { FiChevronLeft, FiChevronRight, FiImage, FiX, FiMaximize2 } from 'react-icons/fi';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import styled, { keyframes, css } from 'styled-components';
+import { FiChevronLeft, FiChevronRight, FiImage } from 'react-icons/fi';
 import { getValidImageUrl } from '../utils/images';
 
+// --- ANIMATIONS ---
+
 const fadeIn = keyframes`
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 `;
+
+// --- STYLED COMPONENTS ---
 
 const CarouselContainer = styled.div`
   position: relative;
   width: 100%;
   height: 100%;
   overflow: hidden;
+  background: #0a0a0a; /* Fallback color */
+  touch-action: pan-y; /* Allows vertical scrolling while swiping horizontally */
 `;
 
-const ImageContainer = styled.div`
-  position: relative;
+const ImageSlider = styled.div`
+  display: flex;
   width: 100%;
   height: 100%;
-  display: flex;
-  transition: transform 0.5s ease;
+  transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
   transform: translateX(-${props => props.currentIndex * 100}%);
+  will-change: transform; /* Hardware acceleration */
 `;
 
 const CarouselImage = styled.div`
@@ -35,51 +37,68 @@ const CarouselImage = styled.div`
   background-image: url(${props => props.src});
   background-size: cover;
   background-position: center;
-  transition: opacity 0.5s ease;
-  animation: ${fadeIn} 0.5s ease;
   position: relative;
+  
+  /* darker overlay ensures text on top is readable */
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.2), transparent 20%, transparent 80%, rgba(0,0,0,0.4));
+  }
 `;
 
 const ImagePlaceholder = styled.div`
   flex: 0 0 100%;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.2);
+  background: #1a1a1a;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 3rem;
+  color: rgba(255, 255, 255, 0.3);
+  gap: 1rem;
+  
+  svg {
+    font-size: 3rem;
+  }
 `;
 
 const NavigationButton = styled.button`
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
   color: white;
-  border: none;
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 50%;
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.5rem;
   cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.3s ease, background 0.3s ease, transform 0.2s ease;
+  opacity: 0; /* Hidden by default */
+  transition: all 0.3s ease;
   z-index: 10;
-  backdrop-filter: blur(2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   
+  /* Show on hover of the container */
   ${CarouselContainer}:hover & {
     opacity: 1;
   }
   
   &:hover {
-    background: rgba(0, 0, 0, 0.6);
-    transform: translateY(-50%) scale(1.05);
+    background: white;
+    color: black;
+    transform: translateY(-50%) scale(1.1);
+  }
+
+  /* Hide arrows on mobile/tablet (use swipe instead) */
+  @media (max-width: 768px) {
+    display: none; 
   }
 `;
 
@@ -93,38 +112,36 @@ const NextButton = styled(NavigationButton)`
 
 const DotsContainer = styled.div`
   position: absolute;
-  bottom: 20px;
-  left: 0;
-  right: 0;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
   justify-content: center;
-  gap: 8px;
+  gap: 10px;
   z-index: 10;
+  pointer-events: none; /* Let clicks pass through around dots */
 `;
 
 const Dot = styled.button`
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: ${props => props.active ? 'white' : 'rgba(255, 255, 255, 0.5)'};
+  background: white;
   border: none;
   padding: 0;
-  margin: 0;
   cursor: pointer;
-  transition: transform 0.2s ease, background 0.3s ease;
+  pointer-events: auto;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  opacity: ${props => props.active ? '1' : '0.3'};
+  transform: ${props => props.active ? 'scale(1.2)' : 'scale(1)'};
   
   &:hover {
-    transform: scale(1.2);
+    opacity: 1;
   }
 `;
 
 /**
  * Image Carousel Component
- * @param {Object} props - Component props
- * @param {Array<string>} props.images - Array of image URLs
- * @param {number} props.initialIndex - Initial image index to display
- * @param {boolean} props.autoplay - Whether to autoplay the carousel
- * @param {number} props.interval - Autoplay interval in milliseconds
  */
 const ImageCarousel = ({
   images = [],
@@ -133,94 +150,115 @@ const ImageCarousel = ({
   interval = 5000
 }) => {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
-  const autoplayTimerRef = useRef(null);
+  const [isPaused, setIsPaused] = useState(false);
   
-  // Ensure we have a valid array of images and filter out any invalid ones
+  // Swipe State
+  const touchStartX = useRef(0);
+  const touchEndX = useRef(0);
+  
   const validImages = useMemo(() => {
     return Array.isArray(images) 
       ? images.filter(img => img && typeof img === 'string')
       : [];
   }, [images]);
-  
-  // Set up autoplay
-  useEffect(() => {
-    if (autoplay && validImages.length > 1) {
-      autoplayTimerRef.current = setInterval(() => {
-        setCurrentIndex(prevIndex => (prevIndex + 1) % validImages.length);
-      }, interval);
-    }
-    
-    return () => {
-      if (autoplayTimerRef.current) {
-        clearInterval(autoplayTimerRef.current);
-      }
-    };
-  }, [autoplay, validImages.length, interval, validImages]);
-  
-  // Go to previous image
-  const goToPrev = () => {
-    setCurrentIndex(prevIndex => {
-      return prevIndex === 0 ? validImages.length - 1 : prevIndex - 1;
-    });
-    resetAutoplay();
-  };
-  
-  // Go to next image
-  const goToNext = () => {
-    setCurrentIndex(prevIndex => {
-      return (prevIndex + 1) % validImages.length;
-    });
-    resetAutoplay();
-  };
-  
-  // Go to specific image
+
+  const length = validImages.length;
+
+  // --- NAVIGATION HANDLERS ---
+
+  const goToNext = useCallback(() => {
+    setCurrentIndex(prev => (prev + 1) % length);
+  }, [length]);
+
+  const goToPrev = useCallback(() => {
+    setCurrentIndex(prev => (prev === 0 ? length - 1 : prev - 1));
+  }, [length]);
+
   const goToIndex = (index) => {
     setCurrentIndex(index);
-    resetAutoplay();
   };
-  
-  // Reset autoplay timer
-  const resetAutoplay = () => {
-    if (autoplayTimerRef.current) {
-      clearInterval(autoplayTimerRef.current);
-      if (autoplay && validImages.length > 1) {
-        autoplayTimerRef.current = setInterval(() => {
-          setCurrentIndex(prevIndex => (prevIndex + 1) % validImages.length);
-        }, interval);
+
+  // --- AUTOPLAY LOGIC ---
+
+  useEffect(() => {
+    if (autoplay && length > 1 && !isPaused) {
+      const timer = setInterval(goToNext, interval);
+      return () => clearInterval(timer);
+    }
+  }, [autoplay, length, isPaused, interval, goToNext]);
+
+  // --- TOUCH / SWIPE LOGIC ---
+
+  const handleTouchStart = (e) => {
+    setIsPaused(true);
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchMove = (e) => {
+    touchEndX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    setIsPaused(false);
+    
+    if (!touchStartX.current || !touchEndX.current) return;
+    
+    const distance = touchStartX.current - touchEndX.current;
+    const minSwipeDistance = 50; // Threshold
+
+    // If swipe distance is significant
+    if (Math.abs(distance) > minSwipeDistance) {
+      if (distance > 0) {
+        goToNext(); // Swiped Left
+      } else {
+        goToPrev(); // Swiped Right
       }
     }
-  };
     
-  // If no valid images, show placeholder
-  if (validImages.length === 0) {
-    console.log("ImageCarousel: No valid images to display");
+    // Reset values
+    touchStartX.current = 0;
+    touchEndX.current = 0;
+  };
+
+  // --- RENDER ---
+
+  if (length === 0) {
     return (
       <CarouselContainer>
         <ImagePlaceholder>
           <FiImage />
+          <span>No images available</span>
         </ImagePlaceholder>
       </CarouselContainer>
     );
   }
   
   return (
-    <CarouselContainer>
-      <ImageContainer currentIndex={currentIndex}>
+    <CarouselContainer
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
+      <ImageSlider currentIndex={currentIndex}>
         {validImages.map((image, index) => (
           <CarouselImage 
             key={index} 
             src={getValidImageUrl(image)}
+            role="img"
+            aria-label={`Slide ${index + 1} of ${length}`}
           />
         ))}
-      </ImageContainer>
+      </ImageSlider>
       
-      {validImages.length > 1 && (
+      {length > 1 && (
         <>
-          <PrevButton onClick={goToPrev}>
+          <PrevButton onClick={(e) => { e.stopPropagation(); goToPrev(); }} aria-label="Previous Image">
             <FiChevronLeft />
           </PrevButton>
           
-          <NextButton onClick={goToNext}>
+          <NextButton onClick={(e) => { e.stopPropagation(); goToNext(); }} aria-label="Next Image">
             <FiChevronRight />
           </NextButton>
           
@@ -229,7 +267,8 @@ const ImageCarousel = ({
               <Dot 
                 key={index} 
                 active={index === currentIndex} 
-                onClick={() => goToIndex(index)}
+                onClick={(e) => { e.stopPropagation(); goToIndex(index); }}
+                aria-label={`Go to slide ${index + 1}`}
               />
             ))}
           </DotsContainer>
