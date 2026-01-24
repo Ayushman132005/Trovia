@@ -36,7 +36,11 @@
     "extends": [
       "react-app",
       "react-app/jest"
-    ]
+    ],
+    "rules": {
+      "no-unused-vars": "warn",
+      "react-hooks/exhaustive-deps": "warn"
+    }
   },
   "browserslist": {
     "production": [
@@ -53,17 +57,5 @@
   "devDependencies": {
     "@babel/preset-react": "^7.27.1",
     "cross-env": "^7.0.3"
-  }
-  {
-    "eslintConfig": {
-      "extends": [
-        "react-app",
-        "react-app/jest"
-      ],
-      "rules": {
-        "no-unused-vars": "warn",
-        "react-hooks/exhaustive-deps": "warn"
-      }
-    }
   }
 }
