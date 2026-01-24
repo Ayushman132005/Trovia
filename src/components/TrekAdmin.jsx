@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
 import { db, auth } from "../firebase";
-import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, setDoc, query, where } from "firebase/firestore";
+import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, setDoc, query, where, getDoc } from "firebase/firestore";
 import { initializeTreks } from "../utils/initializeTreks";
 import { FiTrash, FiEdit, FiSave, FiX, FiPlusCircle, FiLogIn, FiUpload, FiImage, FiCalendar, FiMap } from 'react-icons/fi';
 import { signInWithEmailAndPassword, onAuthStateChanged, signOut } from "firebase/auth";
@@ -481,7 +481,7 @@ const TrekAdmin = () => {
   const [authLoading, setAuthLoading] = useState(true);
   const [loginError, setLoginError] = useState('');
     // Admin emails that are allowed access
-  const ADMIN_EMAILS = ['luckychelani950@gmail.com', 'harsh68968@gmail.com', 'youremail@example.com']; // Replace with your actual email
+  const ADMIN_EMAILS = ['luckychelani950@gmail.com', 'harsh68968@gmail.com', 'ayushmanpatel13@gmail.com']; // Replace with your actual email
   
   // Form state for adding/editing trek
   const [formData, setFormData] = useState({
@@ -518,29 +518,31 @@ const TrekAdmin = () => {
   const [loadingOrganizers, setLoadingOrganizers] = useState(false);
   
   useEffect(() => {
-    // Check authentication state
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setAuthLoading(false);
       
-      if (currentUser && ADMIN_EMAILS.includes(currentUser.email)) {
-        // User is authenticated and is an admin
-        setUser(currentUser);
-        fetchTreks();
-        fetchOrganizers(); // Fetch organizers when authenticated
-      } else if (currentUser) {
-        // User is authenticated but not an admin
-        signOut(auth); // Sign them out
-        setUser(null);
-        setLoginError("You don't have admin access.");
+      if (currentUser) {
+        // 1. Fetch the user document from Firestore
+        const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+        
+        // 2. Check if the user exists AND has the admin role
+        if (userDoc.exists() && userDoc.data().role === 'admin') {
+          setUser(currentUser);
+          fetchTreks();
+          fetchOrganizers();
+        } else {
+          // User exists but isn't an admin
+          // signOut(auth); // Optional: Uncomment if you want to force logout
+          setUser(null);
+          setLoginError("Access denied: You do not have the 'admin' role in the database.");
+        }
       } else {
-        // User is not authenticated
         setUser(null);
       }
     });
-    
     return () => unsubscribe();
   }, []);
-  
+
   // Function to fetch all users with organizer role
   const fetchOrganizers = async () => {
     try {

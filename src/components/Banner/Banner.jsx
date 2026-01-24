@@ -71,14 +71,6 @@ const Banner = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Handle scroll indicator click
-  const handleScrollDown = () => {
-    const bannerHeight = bannerRef.current.offsetHeight;
-    window.scrollTo({
-      top: bannerHeight,
-      behavior: 'smooth'
-    });
-  };
   return (
     <div className="banner" ref={bannerRef}>
       {/* Navbar removed - using BottomNavbar from App.js */}

@@ -8,10 +8,9 @@ import {
   updateDoc, 
   deleteDoc, 
   query, 
-  orderBy,
-  where
+  orderBy
 } from "firebase/firestore";
-import { FiTrash, FiEdit, FiSave, FiX, FiCheckCircle, FiXCircle, FiLogIn, FiLogOut, FiPlus, FiRefreshCw } from 'react-icons/fi';
+import { FiTrash, FiX, FiCheckCircle, FiXCircle, FiLogIn, FiLogOut, FiPlus, FiRefreshCw } from 'react-icons/fi';
 import { signInWithEmailAndPassword, onAuthStateChanged, signOut } from "firebase/auth";
 import CreateCommunityModal from "./CreateCommunityModal";
 

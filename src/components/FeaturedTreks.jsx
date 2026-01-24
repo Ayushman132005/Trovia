@@ -3,16 +3,12 @@ import styled, { keyframes, css, createGlobalStyle } from "styled-components";
 import { useNavigate } from "react-router-dom";
 import mapPattern from "../assets/images/map-pattren.png";
 // Import required icons for the new card design
-import { FiChevronLeft, FiChevronRight, FiClock, FiMapPin, FiCalendar, FiArrowRight, FiSearch, FiUsers, FiHeart, FiStar, FiUser } from 'react-icons/fi';
-import { FaMountain, FaStar } from 'react-icons/fa';
+import { FiChevronLeft, FiChevronRight, FiClock, FiMapPin, FiCalendar, FiUsers, FiHeart, FiStar, FiUser } from 'react-icons/fi';
 import { db } from "../firebase";
 import { collection, getDocs } from "firebase/firestore";
 import { getValidImageUrl } from "../utils/images";
-import { useSearch } from "../context/SearchContext";
 // Import tag and organizer components
 import { 
-  TagsContainer, 
-  Tag, 
   OrganizerRow, 
   OrganizerIcon, 
   OrganizerText, 
@@ -23,21 +19,6 @@ import {
 
 // Using TagsContainer and Tag components from TagComponents.js
 
-const PriceTag = styled.div`
-  font-size: 18px;
-  font-weight: 700;
-  color: white;
-  display: flex;
-  align-items: center;
-  
-  span {
-    font-size: 14px;
-    margin-right: 1px;
-    font-weight: 400;
-    opacity: 0.8;
-  }
-`;
-
 // Adding required fonts for premium trek card design
 const GlobalFonts = createGlobalStyle`
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
@@ -45,34 +26,8 @@ const GlobalFonts = createGlobalStyle`
 // import { MetaRow, MetaItem, TrekRating } from "./TrekCardComponents";
 
 // Define these components directly in this file as fallback
-const MetaRow = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  
-  @media (max-width: 480px) {
-    gap: 6px;
-  }
-`;
 
-const MetaItem = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: #a1a1aa;
-  font-size: 13px;
-  font-weight: 400;
-  
-  svg {
-    color: #7c3aed;
-    font-size: 14px;
-  }
-  
-  span {
-    position: relative;
-    z-index: 1;
-  }
-`;
+// Define these components directly in this file as fallback
 
 const TrekRating = styled.div`
   display: flex;
@@ -114,15 +69,6 @@ const shimmer = keyframes`
   }
   100% {
     background-position: 500px 0;
-  }
-`;
-
-const floatAnimation = keyframes`
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-10px);
   }
 `;
 
@@ -290,68 +236,6 @@ const Subtitle = styled.p`
   }
 `;
 
-const SearchContainer = styled.div`
-  display: flex;
-  justify-content: center;
-  margin-bottom: 40px;
-  width: 100%;
-  animation: ${fadeIn} 0.6s ease-out 0.3s both;
-  
-  @media (max-width: 768px) {
-    margin-bottom: 30px;
-  }
-`;
-
-const SearchInputContainer = styled.div`
-  position: relative;
-  width: 100%;
-  max-width: 500px;
-`;
-
-const SearchInput = styled.input`
-  width: 100%;
-  height: 50px;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 25px;
-  padding: 0 50px 0 20px;
-  color: white;
-  font-size: 1rem;
-  transition: all 0.3s ease;
-  
-  &:focus {
-    outline: none;
-    background: rgba(255, 255, 255, 0.15);
-    border-color: rgba(255, 255, 255, 0.3);
-    box-shadow: 0 0 20px rgba(128, 255, 219, 0.1);
-  }
-  
-  &::placeholder {
-    color: rgba(255, 255, 255, 0.6);
-  }
-`;
-
-const SearchIconContainer = styled.div`
-  position: absolute;
-  top: 50%;
-  right: 15px;
-  transform: translateY(-50%);
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 1.2rem;
-  display: flex;
-  align-items: center;
-`;
-
-const SearchResultsInfo = styled.div`
-  text-align: center;
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 1rem;
-  margin-bottom: 20px;
-  font-style: italic;
-  animation: ${fadeIn} 0.6s ease-out;
-`;
-
 const ScrollContainer = styled.div`
   position: relative;
   width: 100%;
@@ -502,32 +386,6 @@ const NextButton = styled(NavigationButton)`
   }
 `;
 
-// Define 3D card hover effect
-const cardHover = keyframes`
-  0% { transform: perspective(1200px) rotateY(0) rotateX(0); }
-  50% { transform: perspective(1200px) rotateY(5deg) rotateX(-2deg); }
-  100% { transform: perspective(1200px) rotateY(0) rotateX(0); }
-`;
-
-// Adding dynamic glow effect animation
-const glowEffect = keyframes`
-  0% { box-shadow: 0 0 15px rgba(76, 111, 255, 0.3); }
-  50% { box-shadow: 0 0 30px rgba(76, 111, 255, 0.5); }
-  100% { box-shadow: 0 0 15px rgba(76, 111, 255, 0.3); }
-`;
-
-// Add card hover lift animation
-const cardLift = keyframes`
-  0% { transform: translateY(0); }
-  100% { transform: translateY(-15px); }
-`;
-
-// Card shine animation
-const cardShine = keyframes`
-  0% { background-position: 200% 50%; }
-  100% { background-position: -200% 50%; }
-`;
-
 const TrekCard = styled.div`
   background: rgba(13, 15, 20, 0.85); /* Slightly transparent */
   backdrop-filter: blur(12px);
@@ -583,16 +441,6 @@ const TrekCard = styled.div`
   }
 `;
 
-const imageZoom = keyframes`
-  0% { transform: scale(1); }
-  100% { transform: scale(1.15); }
-`;
-
-const imageShimmer = keyframes`
-  0% { background-position: -200% center; }
-  100% { background-position: 200% center; }
-`;
-
 const TrekImageWrapper = styled.div`
   position: relative;
   height: 220px;
@@ -626,20 +474,6 @@ const TrekImage = styled.div`
   }
 `;
 
-const overlayReveal = keyframes`
-  from { opacity: 0.7; }
-  to { opacity: 1; }
-`;
-
-const ImageOverlay = styled.div`
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 2;
-`;
-
 const DifficultyTag = styled.div`
   position: absolute;
   top: 12px;
@@ -655,96 +489,9 @@ const DifficultyTag = styled.div`
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 `;
 
-const TrekTags = styled.div`
-  position: absolute;
-  top: 12px;
-  left: 12px;
-  z-index: 10;
-`;
-
-// We'll keep this for backward compatibility but rename it
-const BackwardsCompatTag = styled.div`
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 12px;
-  border-radius: 999px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #fff;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(4px);
-  gap: 4px;
-  
-  svg {
-    font-size: 1rem;
-  }
-`;
-
-const LocationTag = styled(Tag)`
-  background: rgba(124, 58, 237, 0.9);
-  color: white;
-`;
-
-const InfoRow = styled.div`
-  display: flex;
-  justify-content: flex-start;
-  gap: 12px;
-  margin-bottom: 14px;
-  color: #ccc;
-  font-size: 0.95rem;
-  flex-wrap: wrap;
-  align-items: center;
-  
-  &:last-of-type {
-    margin-bottom: 20px;
-  }
-`;
-
-const InfoItem = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: #ccc;
-  background: rgba(255, 255, 255, 0.08);
-  padding: 6px 12px;
-  border-radius: 20px;
-  transition: all 0.3s ease;
-  
-  &:hover {
-    background: rgba(255, 255, 255, 0.12);
-    transform: translateY(-2px);
-  }
-  
-  svg {
-    color: #64B5F6;
-    font-size: 1.1rem;
-  }
-`;
-
 // Components have been moved to the top of the file to fix ESLint errors
 
 // Add missing components for ESLint errors
-const StarContainer = styled.div`
-  display: flex;
-  align-items: center;
-`;
-
-const Star = styled.div`
-  margin-right: 2px;
-`;
-
-const ReviewCount = styled.span`
-  font-size: 0.85rem;
-  opacity: 0.8;
-  margin-left: 4px;
-`;
-
-const ActionRow = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 8px;
-`;
 
 // Scroll indicator components
 const ScrollIndicatorContainer = styled.div`
@@ -767,157 +514,6 @@ const ScrollIndicator = styled.div`
   }
 `;
 
-// Premium Trek Card Component - clean, elegant design following specifications
-const PremiumTrekCard = styled.div`
-  width: 100%;
-  max-width: 320px;
-  border-radius: 16px;
-  background-color: #0d0f14;
-  color: white;
-  overflow: hidden;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
-  transition: all 0.3s ease;
-  display: flex;
-  flex-direction: column;
-  font-family: 'Inter', sans-serif;
-  
-  &:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5);
-  }
-  
-  @media (max-width: 360px) {
-    max-width: 100%;
-  }
-`;
-
-const CardImageContainer = styled.div`
-  position: relative;
-  height: 220px;
-  width: 100%;
-  overflow: hidden;
-`;
-
-const CardImage = styled.div`
-  width: 100%;
-  height: 100%;
-  background-size: cover;
-  background-position: center;
-  transition: transform 0.6s ease;
-  
-  ${PremiumTrekCard}:hover & {
-    transform: scale(1.05);
-  }
-`;
-
-const DifficultyBadge = styled.div`
-  position: absolute;
-  top: 12px;
-  left: 12px;
-  background-color: rgba(124, 58, 237, 0.9);
-  color: white;
-  font-size: 12px;
-  font-weight: 600;
-  padding: 4px 12px;
-  border-radius: 999px;
-  z-index: 2;
-  backdrop-filter: blur(4px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-`;
-
-const CardContent = styled.div`
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-`;
-
-const PremiumTrekTitle = styled.h3`
-  margin: 0 0 8px 0;
-  font-size: 20px;
-  font-weight: 700;
-  color: #ffffff;
-  line-height: 1.2;
-`;
-
-const MetaDataRow = styled.div`
-  display: flex;
-  align-items: center;
-  color: #a1a1aa;
-  font-size: 13px;
-  font-weight: 400;
-  margin-bottom: 12px;
-`;
-
-const MetaDataDot = styled.span`
-  margin: 0 6px;
-  opacity: 0.6;
-`;
-
-const CardRating = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  color: #e4e4e7;
-  font-size: 13px;
-  font-weight: 500;
-  margin-bottom: 16px;
-  
-  svg {
-    color: #fbbf24;
-    font-size: 14px;
-  }
-  
-  span.reviews {
-    color: #a1a1aa;
-    font-weight: 400;
-    font-size: 12px;
-    margin-left: 2px;
-  }
-`;
-
-const CardFooter = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-`;
-
-const PremiumPriceTag = styled.div`
-  color: #ffffff;
-  font-size: 18px;
-  font-weight: 700;
-  
-  .currency {
-    font-size: 14px;
-    font-weight: 400;
-    margin-right: 1px;
-  }
-  
-  .unit {
-    font-size: 12px;
-    color: #a1a1aa;
-    margin-left: 2px;
-    font-weight: 400;
-  }
-`;
-
-const ViewButton = styled.button`
-  height: 38px;
-  padding: 0 18px;
-  border: none;
-  border-radius: 10px;
-  background: #7c3aed;
-  color: white;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  
-  &:hover {
-    background: #8b5cf6;
-    transform: translateY(-2px);
-  }
-`;
-
 // Clean, premium trek card component following design specifications
 
 
@@ -934,11 +530,8 @@ export default function FeaturedTreks() {
   useEffect(() => {
     // Add any font initialization logic here if needed
   }, []);
-  const [filteredTreks, setFilteredTreks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [localSearchValue, setLocalSearchValue] = useState('');
-  const { searchQuery, updateSearchQuery, searchTreks } = useSearch();
 
   // Fetch treks from Firebase when component mounts
   useEffect(() => {
@@ -1275,13 +868,6 @@ const TrekTitle = styled.h3`
   margin: 0 0 8px 0;
   line-height: 1.2;
   color: #ffffff;
-`;
-
-// Simplified SeasonBadge component
-const SeasonBadge = styled(MetaItem)`
-  svg {
-    color: #7c3aed;
-  }
 `;
 
 const TrekLocation = styled.p`

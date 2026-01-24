@@ -6,15 +6,6 @@ import BookingService from '../services/BookingService';
 import { auth, db } from '../firebase';
 import { doc, getDoc } from 'firebase/firestore';
 
-const checkDrawAnimation = keyframes`
-  0% {
-    stroke-dashoffset: 100;
-  }
-  100% {
-    stroke-dashoffset: 0;
-  }
-`;
-
 const successPulse = keyframes`
   0%, 100% { 
     transform: scale(1);

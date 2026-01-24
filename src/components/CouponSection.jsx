@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { FiCheckCircle, FiXCircle, FiTag, FiLoader } from 'react-icons/fi';
 import { db } from '../firebase';
-import { collection, getDocs, query, where, Timestamp } from 'firebase/firestore';
+import { collection, getDocs, query, where } from 'firebase/firestore';
 
 const rotate = keyframes`
   from { transform: rotate(0deg); }

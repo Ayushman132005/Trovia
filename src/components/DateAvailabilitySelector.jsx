@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 import { FiCalendar, FiChevronLeft, FiChevronRight, FiCheck, FiX } from 'react-icons/fi';
 
@@ -214,7 +214,6 @@ const DateAvailabilitySelector = ({
   // Generate calendar days for current month
   const generateCalendarDays = () => {
     const firstDay = new Date(currentYear, currentMonth, 1);
-    const lastDay = new Date(currentYear, currentMonth + 1, 0);
     const startDate = new Date(firstDay);
     startDate.setDate(startDate.getDate() - firstDay.getDay());
 

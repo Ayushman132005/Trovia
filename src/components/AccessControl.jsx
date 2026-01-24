@@ -4,7 +4,7 @@ import { auth, db } from '../firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import styled from 'styled-components';
-import { FaShieldAlt, FaExclamationTriangle, FaSpinner } from 'react-icons/fa';
+import { FaShieldAlt, FaSpinner } from 'react-icons/fa';
 
 const AccessDeniedContainer = styled.div`
   display: flex;
@@ -134,7 +134,6 @@ const AccessControl = ({ children, requiredRole, specificUserId }) => {
           
           if (userDoc.exists()) {
             const userData = userDoc.data();
-            const userRole = userData.role || 'user';
             
             let accessGranted = false;
             

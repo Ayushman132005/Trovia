@@ -5,7 +5,7 @@ import { FiX, FiCalendar, FiUser, FiPhone, FiMessageSquare, FiCreditCard, FiChec
 import { processBookingPayment, completeBookingPayment, handleBookingPaymentFailure } from '../utils/bookingService';
 import { loadRazorpayScript } from '../services/payment/razorpay';
 import { auth, db } from '../firebase';
-import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc} from 'firebase/firestore';
 import CouponSection from './CouponSection';
 import emailService from '../services/emailService';
 
@@ -1287,7 +1287,7 @@ const BookingModal = ({ isOpen, onClose, trek, onBookingSuccess }) => {
   const availableDatesForCalendar = getAvailableDatesForCalendar();
   
   // Create a function to check if a date is available for booking
-  const isDateAvailable = (dateString) => {
+  const isDateAvailable = useCallback((dateString) => {
     const date = new Date(dateString);
     
     // Check if the date is in the past
@@ -1310,7 +1310,7 @@ const BookingModal = ({ isOpen, onClose, trek, onBookingSuccess }) => {
     
     // If neither availableDates nor availableMonths are defined, allow all future dates
     return true;
-  };
+  }, [today, trek]);
   
   // Function to get availability display text
   const getAvailabilityDisplay = () => {
@@ -1532,20 +1532,7 @@ const BookingModal = ({ isOpen, onClose, trek, onBookingSuccess }) => {
     }
   };
 
-  const handleDateChipClick = (dateString) => {
-    setFormData(prevData => ({
-      ...prevData,
-      startDate: dateString
-    }));
-    
-    // Clear date error if it exists
-    if (errors.startDate) {
-      setErrors(prevErrors => ({
-        ...prevErrors,
-        startDate: undefined
-      }));
-    }
-  };
+  
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -1554,7 +1541,7 @@ const BookingModal = ({ isOpen, onClose, trek, onBookingSuccess }) => {
       setStep(2);
     }
   };
-  const calculateTotalPrice = () => {
+  const calculateTotalPrice = useCallback(() => {
     const basePrice = trek?.numericPrice || parseInt(trek?.price?.replace(/[^0-9]/g, '')) || 0;
     const subtotal = basePrice * formData.participants;
     
@@ -1563,7 +1550,7 @@ const BookingModal = ({ isOpen, onClose, trek, onBookingSuccess }) => {
       return Math.max(subtotal - discountAmount, 0);
     }
     return subtotal;
-  };
+  }, [trek, formData, activeCoupon, discountAmount]);
   
   // Handle coupon application
   const handleApplyCoupon = (coupon) => {
@@ -1847,7 +1834,7 @@ const BookingModal = ({ isOpen, onClose, trek, onBookingSuccess }) => {
       console.error("Error handling payment failure:", err);
       setPaymentError("Payment failed: " + (error.description || error.message || "Unknown error"));
     }
-  }, [bookingId, formData, trek, calculateTotalPrice]); // Added dependencies for email functionality
+  }, [bookingId, formData, trek, calculateTotalPrice, discountAmount]); // Added dependencies for email functionality
   // Set up global handlers for Razorpay response
   useEffect(() => {
     // Capture the current bookingId in closure for use in handlers

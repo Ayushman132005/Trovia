@@ -1,4 +1,3 @@
-import React, { useEffect, useState } from 'react';
 import styled, { keyframes, css } from 'styled-components';
 import { FaUsers, FaLeaf, FaShieldAlt } from 'react-icons/fa'; // Import icons
 import mapPattern from '../assets/images/map-pattren.png';
@@ -21,11 +20,6 @@ const textShine = keyframes`
 const float = keyframes`
   0%, 100% { transform: translateY(0px); }
   50% { transform: translateY(-10px); }
-`;
-
-const shimmer = keyframes`
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
 `;
 
 const pulse = keyframes`
@@ -378,11 +372,6 @@ const FloatingCircle = styled.div`
 `;
 
 const About = () => {
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    setIsVisible(true);
-  }, []);
 
   const team = [
     {
