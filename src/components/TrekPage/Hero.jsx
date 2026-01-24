@@ -21,13 +21,19 @@ const fadeIn = keyframes`
 
 const ModernHero = styled.section`
   position: relative;
-  height: 100vh;
+  /* 100dvh handles mobile browser address bars better than 100vh */
+  height: 100dvh;
   min-height: 600px;
   width: 100%;
   overflow: hidden;
   display: flex;
   align-items: flex-end;
   background: #0a0a0a;
+
+  /* Adjust min-height for smaller landscape devices */
+  @media (max-height: 500px) and (orientation: landscape) {
+    min-height: 100dvh;
+  }
 `;
 
 const HeroParallax = styled.div`
@@ -98,6 +104,12 @@ const FloatingActions = styled.div`
   z-index: 20;
   display: flex;
   gap: 0.75rem;
+
+  @media (max-width: 768px) {
+    top: 1rem;
+    right: 1rem;
+    gap: 0.5rem;
+  }
 `;
 
 const FloatingBtn = styled.button`
@@ -116,6 +128,11 @@ const FloatingBtn = styled.button`
   &:hover {
     background: rgba(255,255,255,0.25);
   }
+
+  @media (max-width: 768px) {
+    width: 38px;
+    height: 38px;
+  }
 `;
 
 /* ---------------- CONTENT ---------------- */
@@ -124,7 +141,16 @@ const HeroContentWrapper = styled.div`
   position: relative;
   z-index: 10;
   width: 100%;
+  /* Responsive padding: Less on mobile to maximize space */
   padding: 0 5% 4rem;
+
+  @media (max-width: 768px) {
+    padding: 0 1.5rem 2.5rem;
+  }
+
+  @media (max-width: 480px) {
+    padding: 0 1.25rem 2rem;
+  }
 `;
 
 const ContentInner = styled.div`
@@ -133,6 +159,10 @@ const ContentInner = styled.div`
   flex-direction: column;
   gap: 1.25rem;
   animation: ${fadeIn} 1s ease-out forwards;
+
+  @media (max-width: 768px) {
+    gap: 1rem;
+  }
 `;
 
 const LocationTag = styled.div`
@@ -148,15 +178,26 @@ const LocationTag = styled.div`
   svg {
     color: #ffd2bf;
   }
+
+  /* Hidden on Mobile as requested */
+  @media (max-width: 768px) {
+    display: none;
+  }
 `;
 
 const HeroHeading = styled.h1`
-  font-size: clamp(2.6rem, 6vw, 4.5rem);
+  /* Clamp allows fluid scaling between 2.2rem and 4.5rem based on viewport width */
+  font-size: clamp(2.2rem, 6vw, 4.5rem);
   font-weight: 700;
   line-height: 1.15;
   color: white;
   margin: 0;
   letter-spacing: -0.02em;
+
+  @media (max-width: 480px) {
+    font-size: 2rem; /* Fallback for very small screens */
+    line-height: 1.2;
+  }
 `;
 
 const HeroSubtitle = styled.p`
@@ -165,12 +206,25 @@ const HeroSubtitle = styled.p`
   color: rgba(255,255,255,0.95);
   max-width: 620px;
   line-height: 1.4;
+
+  @media (max-width: 768px) {
+    font-size: 1.1rem;
+    max-width: 100%;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 1rem;
+  }
 `;
 
 const HeroFactsRow = styled.div`
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
+  
+  @media (max-width: 480px) {
+    gap: 0.5rem;
+  }
 `;
 
 const FactItem = styled.div`
@@ -184,6 +238,11 @@ const FactItem = styled.div`
   border: 1px solid rgba(255,255,255,0.25);
   font-size: 0.9rem;
   color: white;
+
+  @media (max-width: 480px) {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.75rem;
+  }
 `;
 
 const HeroDesc = styled.p`
@@ -191,6 +250,16 @@ const HeroDesc = styled.p`
   font-size: 1.05rem;
   line-height: 1.6;
   color: rgba(255,255,255,0.85);
+
+  @media (max-width: 768px) {
+    max-width: 100%;
+    font-size: 1rem;
+    /* Limit lines on mobile to prevent scrolling too far */
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
 `;
 
 const HeroActions = styled.div`
@@ -198,6 +267,12 @@ const HeroActions = styled.div`
   flex-wrap: wrap;
   gap: 1rem;
   margin-top: 0.75rem;
+
+  @media (max-width: 480px) {
+    flex-direction: column;
+    width: 100%;
+    gap: 0.75rem;
+  }
 `;
 
 const HeroPrimaryBtn = styled.button`
@@ -210,12 +285,18 @@ const HeroPrimaryBtn = styled.button`
   border-radius: 4px;
   display: flex;
   align-items: center;
+  justify-content: center; /* Center content for mobile stacking */
   gap: 0.75rem;
   cursor: pointer;
   transition: all 0.3s ease;
 
   &:hover {
     transform: translateY(-2px);
+  }
+
+  @media (max-width: 480px) {
+    width: 100%;
+    padding: 0.9rem 1rem;
   }
 `;
 
@@ -227,15 +308,27 @@ const HeroSecondaryBtn = styled.button`
   font-weight: 600;
   border-radius: 4px;
   cursor: pointer;
-
+  display: flex;
+  justify-content: center; /* Center content for mobile stacking */
+  
   &:hover {
     background: rgba(255,255,255,0.12);
+  }
+
+  @media (max-width: 480px) {
+    width: 100%;
+    padding: 0.9rem 1rem;
   }
 `;
 
 const SocialProof = styled.div`
   font-size: 0.9rem;
   color: rgba(255,255,255,0.85);
+
+  @media (max-width: 480px) {
+    font-size: 0.8rem;
+    margin-top: 0.5rem;
+  }
 `;
 
 /* ---------------- HELPERS ---------------- */
@@ -268,7 +361,8 @@ const Hero = ({
 
   useEffect(() => {
     const onScroll = () => {
-      if (parallaxRef.current) {
+      // Disable parallax on mobile for better performance
+      if (window.innerWidth > 768 && parallaxRef.current) {
         parallaxRef.current.style.transform = `translateY(${window.scrollY * 0.3}px)`;
       }
     };
@@ -306,11 +400,6 @@ const Hero = ({
 
       <HeroGradientOverlay />
       <HeroGrainOverlay />
-
-      <FloatingActions>
-        <FloatingBtn><FiHeart /></FloatingBtn>
-        <FloatingBtn><FiShare2 /></FloatingBtn>
-      </FloatingActions>
 
       <HeroContentWrapper>
         <ContentInner>
