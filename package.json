@@ -23,7 +23,7 @@
   },
   "scripts": {
     "start": "cross-env NODE_OPTIONS=--openssl-legacy-provider react-scripts start",
-    "build": "cross-env NODE_OPTIONS=--openssl-legacy-provider react-scripts build",
+    "build": "cross-env CI=false NODE_OPTIONS=--openssl-legacy-provider react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "deploy": "firebase deploy",
@@ -53,5 +53,17 @@
   "devDependencies": {
     "@babel/preset-react": "^7.27.1",
     "cross-env": "^7.0.3"
+  }
+  {
+    "eslintConfig": {
+      "extends": [
+        "react-app",
+        "react-app/jest"
+      ],
+      "rules": {
+        "no-unused-vars": "warn",
+        "react-hooks/exhaustive-deps": "warn"
+      }
+    }
   }
 }

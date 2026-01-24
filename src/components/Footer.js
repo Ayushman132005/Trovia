@@ -666,14 +666,12 @@ const Footer = () => {
   const [subscribed, setSubscribed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const [firestoreAvailable, setFirestoreAvailable] = useState(true);
   
   // Check Firestore availability and process any pending subscriptions 
   useEffect(() => {
     const checkAvailability = async () => {
       // Check if Firebase is available
       const isAvailable = await checkFirestoreAvailability();
-      setFirestoreAvailable(isAvailable);
       
       // If available, try to process any pending subscriptions
       if (isAvailable) {

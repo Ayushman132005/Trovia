@@ -120,8 +120,8 @@ const StatIcon = styled.div`
   width: 48px;
   height: 48px;
   border-radius: 12px;
-  background: ${props => props.bgColor || 'rgba(67, 97, 238, 0.2)'};
-  color: ${props => props.color || '#4361EE'};
+  background: ${props => props.$bgColor || 'rgba(67, 97, 238, 0.2)'}; // Use $bgColor
+  color: ${props => props.$color || '#4361EE'}; // Use $color
   display: flex;
   align-items: center;
   justify-content: center;
@@ -174,8 +174,8 @@ const ActionIcon = styled.div`
   width: 50px;
   height: 50px;
   border-radius: 14px;
-  background: ${props => props.bgColor || 'rgba(67, 97, 238, 0.15)'};
-  color: ${props => props.color || '#4361EE'};
+  background: ${props => props.$bgColor || 'rgba(67, 97, 238, 0.15)'};
+  color: ${props => props.$color || '#4361EE'};
   display: flex;
   align-items: center;
   justify-content: center;
@@ -383,7 +383,7 @@ const OrganizerDashboard = () => {
           
           <QuickStats>
             <StatCard>
-              <StatIcon bgColor="rgba(76, 201, 240, 0.2)" color="#4CC9F0">
+              <StatIcon $bgColor="rgba(76, 201, 240, 0.2)" $color="#4CC9F0">
                 <FiMap />
               </StatIcon>
               <StatValue>{stats.activeTrails}</StatValue>
@@ -391,7 +391,7 @@ const OrganizerDashboard = () => {
             </StatCard>
             
             <StatCard>
-              <StatIcon bgColor="rgba(247, 152, 36, 0.2)" color="#F79824">
+              <StatIcon $bgColor="rgba(247, 152, 36, 0.2)" $color="#F79824">
                 <FiCalendar />
               </StatIcon>
               <StatValue>{stats.upcoming}</StatValue>
@@ -399,7 +399,7 @@ const OrganizerDashboard = () => {
             </StatCard>
             
             <StatCard>
-              <StatIcon bgColor="rgba(67, 97, 238, 0.2)" color="#4361EE">
+              <StatIcon $bgColor="rgba(67, 97, 238, 0.2)" $color="#4361EE">
                 <FiUsers />
               </StatIcon>
               <StatValue>{stats.bookings}</StatValue>
@@ -407,7 +407,7 @@ const OrganizerDashboard = () => {
             </StatCard>
             
             <StatCard>
-              <StatIcon bgColor="rgba(76, 175, 80, 0.2)" color="#4CAF50">
+              <StatIcon $bgColor="rgba(76, 175, 80, 0.2)" $color="#4CAF50">
                 <FiTrendingUp />
               </StatIcon>
               <StatValue>${stats.revenue.toLocaleString()}</StatValue>
@@ -417,7 +417,7 @@ const OrganizerDashboard = () => {
           
           <ActionGrid>
             <ActionCard to="/organizer/treks">
-              <ActionIcon bgColor="rgba(76, 201, 240, 0.15)" color="#4CC9F0">
+              <ActionIcon $bgColor="rgba(76, 201, 240, 0.15)" $color="#4CC9F0">
                 <FiList />
               </ActionIcon>
               <ActionText>
@@ -427,7 +427,7 @@ const OrganizerDashboard = () => {
             </ActionCard>
             
             <ActionCard to="/organizer/add-trek">
-              <ActionIcon bgColor="rgba(76, 175, 80, 0.15)" color="#4CAF50">
+              <ActionIcon $bgColor="rgba(76, 175, 80, 0.15)" $color="#4CAF50">
                 <FiPlusCircle />
               </ActionIcon>
               <ActionText>
@@ -437,7 +437,7 @@ const OrganizerDashboard = () => {
             </ActionCard>
             
             <ActionCard to="/organizer/bookings">
-              <ActionIcon bgColor="rgba(247, 152, 36, 0.15)" color="#F79824">
+              <ActionIcon $bgColor="rgba(247, 152, 36, 0.15)" $color="#F79824">
                 <FiCalendar />
               </ActionIcon>
               <ActionText>
@@ -446,18 +446,18 @@ const OrganizerDashboard = () => {
               </ActionText>
             </ActionCard>
             
-            <ActionCard to="/organizer/profile">
-              <ActionIcon bgColor="rgba(238, 67, 124, 0.15)" color="#EE437C">
+            <ActionCard to={`/organizer/${user ? user.uid : ''}`}>
+              <ActionIcon $bgColor="rgba(238, 67, 124, 0.15)" $color="#EE437C">
                 <FiEdit />
               </ActionIcon>
               <ActionText>
                 <ActionTitle>Organization Profile</ActionTitle>
-                <ActionDescription>Update your organization details</ActionDescription>
+                <ActionDescription>View your public organization profile</ActionDescription>
               </ActionText>
             </ActionCard>
             
             <ActionCard to="/organizer/settings">
-              <ActionIcon bgColor="rgba(255, 255, 255, 0.1)" color="#ffffff">
+              <ActionIcon $bgColor="rgba(255, 255, 255, 0.1)" $color="#ffffff">
                 <FiSettings />
               </ActionIcon>
               <ActionText>
@@ -467,7 +467,7 @@ const OrganizerDashboard = () => {
             </ActionCard>
             
             <ActionCard to="#" onClick={(e) => { e.preventDefault(); auth.signOut(); }}>
-              <ActionIcon bgColor="rgba(255, 86, 86, 0.15)" color="#FF5656">
+              <ActionIcon $bgColor="rgba(255, 86, 86, 0.15)" $color="#FF5656">
                 <FiLogOut />
               </ActionIcon>
               <ActionText>

@@ -241,11 +241,6 @@ const SuccessMessage = styled.div`
 `;
 
 // Add this wrapper to handle scrolling if card view isn't enough
-const TableWrapper = styled.div`
-  width: 100%;
-  overflow-x: auto;
-  margin-top: 30px;
-`;
 
 const CouponAdmin = () => {
   const [coupons, setCoupons] = useState([]);

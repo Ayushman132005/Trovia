@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import styled, { keyframes } from "styled-components";
 import birdsImg from "../assets/images/birds.png";
 import mapPattern from "../assets/images/map-pattren.png";
@@ -37,11 +37,6 @@ const pulse = keyframes`
 const countUp = keyframes`
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
-`;
-
-const shimmerEffect = keyframes`
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
 `;
 
 const SectionContainer = styled.section`
@@ -1494,14 +1489,8 @@ export default function CommunitySection() {
   const [hasMore, setHasMore] = useState(true);
   const navigate = useNavigate();
 
-  // Load communities from Firebase when tab changes
-  useEffect(() => {
-    loadCommunities();
-    console.log("Loading communities for tab:", activeTab);
-  }, [activeTab]);
-
   // Load communities from Firebase
-  const loadCommunities = async (isLoadMore = false) => {
+  const loadCommunities = useCallback(async (isLoadMore = false) => {
     if (!isLoadMore) {
       setLoading(true);
     }
@@ -1547,10 +1536,6 @@ export default function CommunitySection() {
         // Map the data to our expected format
         const loadedCommunities = querySnapshot.docs.map((doc, index) => {
           const data = doc.data();
-          
-          // Convert Firestore timestamps to JavaScript dates
-          const createdAt = data.createdAt?.toDate?.() || new Date();
-          const lastActivity = data.lastActivity?.toDate?.() || new Date();
           
           // Process recent messages if available
           let formattedUsers = [];
@@ -1620,7 +1605,13 @@ export default function CommunitySection() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [activeTab, lastVisible]);
+
+  // Load communities from Firebase when tab changes
+  useEffect(() => {
+    loadCommunities();
+    console.log("Loading communities for tab:", activeTab);
+  }, [activeTab, loadCommunities]);
 
   // Handle search
   const handleSearch = async (e) => {

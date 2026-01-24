@@ -12,24 +12,6 @@ const fadeIn = keyframes`
   to { opacity: 1; transform: translateY(0); }
 `;
 
-const buttonFlare = keyframes`
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-`;
-
-const iconPulse = keyframes`
-  0% { transform: translateY(-4px) scale(1.15); filter: drop-shadow(0 0 8px rgba(255, 131, 131, 0.7)); }
-  50% { transform: translateY(-4px) scale(1.25); filter: drop-shadow(0 0 12px rgba(255, 131, 131, 0.9)) drop-shadow(0 0 5px rgba(255, 255, 255, 0.6)); }
-  100% { transform: translateY(-4px) scale(1.15); filter: drop-shadow(0 0 8px rgba(255, 131, 131, 0.7)); }
-`;
-
-const floatEffect = keyframes`
-  0% { transform: translateY(0); }
-  50% { transform: translateY(-2px); }
-  100% { transform: translateY(0); }
-`;
-
 // --- Styled Components ---
 
 /* WRAPPER: The Full Width Glass Bar */
@@ -242,7 +224,6 @@ const useSafeAreaInset = () => {
 const BottomNavbar = ({ active, transparent = false }) => {
   const [user, setUser] = useState(null);
   const [userRole, setUserRole] = useState('user');
-  const [showToast, setShowToast] = useState(false);
   const [isSafari, setIsSafari] = useState(false);
   
   const location = useLocation();
@@ -368,10 +349,6 @@ const BottomNavbar = ({ active, transparent = false }) => {
           </div>
         </NavLinks>
       </NavbarWrapper>
-      
-      <Toast $show={showToast} $safeAreaBottom={safeAreaBottom}>
-        Coming Soon! ✨
-      </Toast>
     </>
   );
 };

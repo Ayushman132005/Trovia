@@ -18,11 +18,6 @@ const pulse = keyframes`
   100% { transform: scale(1); }
 `;
 
-const float = keyframes`
-  0%, 100% { transform: translateY(0) rotate(0); }
-  50% { transform: translateY(-15px) rotate(2deg); }
-`;
-
 // Page and container styles
 export const Page = styled.div`
   background: #060F1B url(${mapPattern});

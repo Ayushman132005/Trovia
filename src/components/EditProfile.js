@@ -403,13 +403,6 @@ const ButtonGroup = styled.div`
   }
 `;
 
-const FormFieldContainer = styled.div`
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-`;
-
-// Change 'styled.div' to 'styled(motion.div)'
 const Alert = styled(motion.div)`
   padding: 15px;
   border-radius: 12px;
@@ -484,12 +477,6 @@ const LoadingText = styled.div`
       animation: ${shimmer} 1.5s infinite;
     }
   }
-`;
-
-const ErrorMessage = styled.div`
-  margin-top: 8px;
-  font-size: 0.875rem;
-  color: #ff6b6b;
 `;
 
 

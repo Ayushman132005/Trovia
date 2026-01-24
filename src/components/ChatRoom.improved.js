@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import styled, { keyframes, css } from 'styled-components';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { auth, db } from '../firebase';
-import { collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, doc, getDoc, updateDoc, where, deleteDoc, Timestamp, getDocs, arrayUnion } from 'firebase/firestore';
+import { collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, doc, updateDoc, where, Timestamp, getDocs, arrayUnion } from 'firebase/firestore';
 import mapPattern from '../assets/images/map-pattren.png';
 import user1 from '../assets/images/trek1.png'; // Placeholder
 
@@ -11,32 +11,14 @@ const fadeIn = keyframes`
   to { opacity: 1; transform: translateY(0); }
 `;
 
-const slideIn = keyframes`
-  from { transform: translateX(30px); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
-`;
-
 const shimmerEffect = keyframes`
   0% { transform: translateX(-100%); }
   100% { transform: translateX(100%); }
 `;
 
-const spin = keyframes`
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-`;
 
-const glow = keyframes`
-  0% { box-shadow: 0 0 5px rgba(255, 75, 31, 0.5); }
-  50% { box-shadow: 0 0 20px rgba(255, 75, 31, 0.8); }
-  100% { box-shadow: 0 0 5px rgba(255, 75, 31, 0.5); }
-`;
 
-const typing = keyframes`
-  0% { opacity: 0.3; }
-  50% { opacity: 1; }
-  100% { opacity: 0.3; }
-`;
+
 
 // Enhanced visuals for the chat page
 const Page = styled.div`

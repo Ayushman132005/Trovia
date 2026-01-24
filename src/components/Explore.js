@@ -1,21 +1,16 @@
 // filepath: c:\Users\DELL\Documents\Coders\test\src\components\Explore.js
 import React, { useRef, useState, useEffect } from 'react';
 import styled, { keyframes, createGlobalStyle } from 'styled-components';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import mapPattern from '../assets/images/map-pattren.png';
 import trek1 from '../assets/images/trek1.png';
 import Footer from './Footer';
-import groupImg from '../assets/images/trek1.png';
-import eventImg from '../assets/images/trek1.png';
-import { FiChevronLeft, FiChevronRight, FiClock, FiMapPin, FiCalendar, FiArrowRight, FiUsers, FiInfo, FiTrendingUp, FiAward, FiSearch, FiX, FiHeart, FiStar, FiUser } from 'react-icons/fi';
-import { FaMountain, FaStar, FaSnowflake, FaSun, FaLeaf, FaCloudRain } from 'react-icons/fa';
-import { RiCommunityFill } from 'react-icons/ri';
-import { MdEventAvailable } from 'react-icons/md';
+import { FiChevronLeft, FiChevronRight, FiClock, FiMapPin, FiUsers, FiSearch, FiX, FiHeart, FiStar, FiUser } from 'react-icons/fi';
+import { FaSnowflake, FaSun, FaLeaf, FaCloudRain } from 'react-icons/fa';
 import { db } from '../firebase';
-import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
+import { collection, getDocs } from 'firebase/firestore';
 import { useSearch } from '../context/SearchContext';
-import { ActionButton, EventButton, BadgeTag } from './ExploreComponents';
-import { TagsContainer, Tag, OrganizerRow, OrganizerIcon, OrganizerText, OrganizerName } from './TagComponents';
+import { OrganizerRow, OrganizerIcon, OrganizerText, OrganizerName } from './TagComponents';
 
 // Adding required fonts for premium trek card design
 const GlobalFonts = createGlobalStyle`
@@ -23,84 +18,6 @@ const GlobalFonts = createGlobalStyle`
 `;
 
 // Premium card components for reusability
-const MetaDataRow = styled.div`
-  display: flex;
-  align-items: center;
-  color: #a1a1aa;
-  font-size: 13px;
-  font-weight: 400;
-  margin-bottom: 8px;
-`;
-
-const MetaDataDot = styled.span`
-  margin: 0 6px;
-  opacity: 0.6;
-`;
-
-const CardRating = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  color: #e4e4e7;
-  font-size: 13px;
-  font-weight: 500;
-  margin-bottom: 16px;
-  
-  svg {
-    color: #fbbf24;
-    font-size: 14px;
-  }
-  
-  span.reviews {
-    color: #a1a1aa;
-    font-weight: 400;
-    font-size: 12px;
-    margin-left: 2px;
-  }
-`;
-
-const CardFooter = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-`;
-
-const PremiumPriceTag = styled.div`
-  color: #ffffff;
-  font-size: 18px;
-  font-weight: 700;
-  
-  .currency {
-    font-size: 14px;
-    font-weight: 400;
-    margin-right: 1px;
-  }
-  
-  .unit {
-    font-size: 12px;
-    color: #a1a1aa;
-    margin-left: 2px;
-    font-weight: 400;
-  }
-`;
-
-const ViewButton = styled.button`
-  padding: 10px 20px;
-  border: none;
-  border-radius: 12px;
-  background: linear-gradient(to right, #f97316, #7c3aed);
-  color: white;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  
-  &:hover {
-    filter: brightness(1.1);
-    transform: translateY(-2px);
-  }
-`;
-
 // Animations
 const fadeIn = keyframes`
   from {
@@ -121,23 +38,6 @@ const shimmer = keyframes`
 const breathe = keyframes`
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.05); }
-`;
-
-const floatAnimation = keyframes`
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
-`;
-
-const starPulse = keyframes`
-  0% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.1);
-  }
-  100% {
-    transform: scale(1);
-  }
 `;
 
 // Main Container Components
@@ -568,252 +468,7 @@ const TrekImage = styled.div`
   }
 `;
 
-const ImageOverlay = styled.div`
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(to bottom, 
-    rgba(0, 0, 0, 0.2) 0%,
-    rgba(0, 0, 0, 0.4) 40%,
-    rgba(0, 0, 0, 0.7) 70%,
-    rgba(0, 0, 0, 0.9) 100%
-  );
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  padding: 20px;
-  
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(180deg, 
-      rgba(18, 18, 18, 0) 40%, 
-      rgba(18, 18, 18, 0.8) 80%, 
-      rgba(18, 18, 18, 1) 100%);
-    z-index: -1;
-  }
-  
-  ${TrekCard}:hover & {
-    opacity: 1;
-  }
-`;
-
 // Using tag and organizer components from TagComponents.js
-
-const SeasonBadge = styled.div`
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-weight: 600;
-  font-size: 0.9rem;
-  color: #fff;
-  background: linear-gradient(135deg, rgba(255, 152, 0, 0.7), rgba(255, 193, 7, 0.7));
-  padding: 8px 12px;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 193, 7, 0.3);
-  box-shadow: 0 4px 12px rgba(255, 193, 7, 0.25);
-  backdrop-filter: blur(4px);
-  transition: all 0.3s ease;
-  
-  svg {
-    color: rgba(255, 255, 255, 0.95);
-    font-size: 1rem;
-  }
-  
-  &:hover {
-    transform: translateY(-2px) scale(1.05);
-    box-shadow: 0 6px 16px rgba(255, 193, 7, 0.35);
-    background: linear-gradient(135deg, rgba(255, 152, 0, 0.8), rgba(255, 193, 7, 0.8));
-  }
-  
-  @media (max-width: 480px) {
-    font-size: 0.9rem;
-    padding: 8px 14px;
-  }
-`;
-
-const TrekTags = styled.div`
-  position: absolute;
-  top: 16px;
-  left: 16px;
-  right: 100px;
-  display: flex;
-  justify-content: flex-start;
-  flex-wrap: wrap;
-  gap: 12px;
-  z-index: 10;
-  animation: fadeIn 0.5s ease-out;
-  
-  @media (max-width: 480px) {
-    gap: 6px;
-  }
-`;
-
-const pulsate = keyframes`
-  0% {
-    box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4);
-  }
-  70% {
-    box-shadow: 0 0 0 10px rgba(76, 175, 80, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
-  }
-`;
-
-const PriceTag = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  background: linear-gradient(135deg, #43A047, #2E7D32);
-  color: #fff;
-  font-weight: 800;
-  font-size: 1.4rem;
-  padding: 16px 28px;
-  border-radius: 14px;
-  border: 1px solid rgba(76, 175, 80, 0.4);
-  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  box-shadow: 0 8px 20px rgba(76, 175, 80, 0.3);
-  margin: 12px 0;
-  width: 100%;
-  position: relative;
-  overflow: hidden;
-  letter-spacing: 0.5px;
-  
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-    transition: 0.5s;
-  }
-  
-  &::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: 14px; 
-    padding: 2px;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.4), rgba(76, 175, 80, 0.6));
-    -webkit-mask: 
-      linear-gradient(#fff 0 0) content-box, 
-      linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    opacity: 0;
-    transition: opacity 0.5s ease;
-  }
-  
-  &:hover::before {
-    left: 100%;
-  }
-  
-  &:hover::after {
-    opacity: 1;
-  }
-  
-  span {
-    font-size: 1.1rem;
-    font-weight: 600;
-    margin-right: 2px;
-    color: rgba(255, 255, 255, 0.9);
-  }
-  
-  &:hover {
-    background: linear-gradient(135deg, #2E7D32, #388E3C);
-    transform: translateY(-3px) scale(1.02);
-    box-shadow: 0 12px 30px rgba(76, 175, 80, 0.5);
-    animation: ${pulsate} 2s infinite;
-  }
-  
-  @media (max-width: 480px) {
-    font-size: 1.3rem;
-    padding: 14px 24px;
-  }
-`;
-
-const DifficultyTag = styled.div`
-  position: absolute;
-  top: 12px;
-  left: 12px;
-  background: #7c3aed;
-  color: white;
-  font-size: 12px;
-  font-weight: 600;
-  padding: 4px 12px;
-  border-radius: 999px;
-  z-index: 10;
-  display: inline-flex;
-  align-items: center;
-`;
-
-const GroupTag = styled(Tag)`
-  background: rgba(103, 58, 183, 0.25);
-  color: #E1BEE7;
-  border: 1px solid rgba(103, 58, 183, 0.4);
-  padding: 8px 16px;
-  font-size: 1rem;
-  font-weight: 700;
-  box-shadow: 0 6px 15px rgba(103, 58, 183, 0.3);
-  
-  svg {
-    color: #B39DDB;
-    font-size: 1.2rem;
-  }
-  
-  &:hover {
-    background: rgba(103, 58, 183, 0.35);
-    border-color: rgba(103, 58, 183, 0.5);
-    transform: translateY(-3px);
-    box-shadow: 0 8px 20px rgba(103, 58, 183, 0.4);
-  }
-`;
-
-const EventTag = styled(Tag)`
-  background: rgba(255, 152, 0, 0.25);
-  color: #FFE0B2;
-  border: 1px solid rgba(255, 152, 0, 0.4);
-  padding: 8px 16px;
-  font-size: 1rem;
-  font-weight: 700;
-  box-shadow: 0 6px 15px rgba(255, 152, 0, 0.3);
-  
-  svg {
-    color: #FFB74D;
-    font-size: 1.2rem;
-  }
-  
-  &:hover {
-    background: rgba(255, 152, 0, 0.35);
-    border-color: rgba(255, 152, 0, 0.5);
-    transform: translateY(-3px);
-    box-shadow: 0 8px 20px rgba(255, 152, 0, 0.4);
-  }
-`;
-
-const TrekInfo = styled.div`
-  padding: 0 16px;
-  color: #ffffff;
-  position: relative;
-  z-index: 3;
-  display: flex;
-  flex-direction: column;
-    @media (max-width: 480px) {
-    padding: 0 12px;
-  }
-`;
 
 const TrekTitle = styled.h3`
   font-size: 20px;
@@ -1137,19 +792,6 @@ const EmptyState = styled.div`
 `;
 
 // Sample data for active groups and events (would come from backend in full app)
-const activeGroups = [
-  { name: 'Himalayan Trekkers', members: 250 },
-  { name: 'Weekend Wanderers', members: 180 },
-  { name: 'Mountain Enthusiasts', members: 320 },
-  { name: 'Adventure Seekers', members: 210 }
-];
-
-const upcomingEvents = [
-  { name: 'Trekking Summit 2023', date: 'Oct 15' },
-  { name: 'Gear Workshop', date: 'Nov 5' },
-  { name: 'Photo Exhibition', date: 'Oct 28' },
-  { name: 'Travel Meetup', date: 'Dec 10' }
-];
 
 const Explore = () => {
   const navigate = useNavigate();
@@ -1666,81 +1308,7 @@ const Explore = () => {
   );
 };
 
-const LocationTag = styled(Tag)`
-  background: rgba(33, 150, 243, 0.2);
-  color: white;
-  border: 1px solid rgba(33, 150, 243, 0.4);
-  border-radius: 50px;
-  padding: 6px 14px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.25);
-  min-width: 90px;
-  justify-content: center;
-  
-  svg {
-    color: white;
-  }
-  
-  @media (max-width: 480px) {
-    padding: 5px 10px;
-    min-width: 80px;
-    font-size: 0.8rem;
-  }
-`;
-
 export default Explore;
-
-const StarContainer = styled.div`
-  display: flex;
-  align-items: center;
-  color: #FFC107;
-  font-size: 1.1rem;
-  background: linear-gradient(135deg, rgba(255, 193, 7, 0.15), rgba(255, 87, 34, 0.1));
-  padding: 8px 14px;
-  border-radius: 30px;
-  margin-right: 8px;
-  border: 1px solid rgba(255, 193, 7, 0.2);
-  box-shadow: 0 4px 12px rgba(255, 193, 7, 0.15);
-  transition: all 0.3s ease;
-  
-  &:hover {
-    background: linear-gradient(135deg, rgba(255, 193, 7, 0.2), rgba(255, 87, 34, 0.15));
-    transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(255, 193, 7, 0.25);
-  }
-`;
-
-const Star = styled.span`
-  color: #FFC107;
-  margin-right: 4px;
-  font-size: 1.1rem;
-  line-height: 1;
-  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.2));
-  transition: all 0.3s ease;
-  
-  &:hover {
-    color: #FFD54F;
-    animation: ${starPulse} 0.8s ease infinite;
-  }
-`;
-
-const ReviewCount = styled.span`
-  color: #aaa;
-  font-weight: 400;
-  font-size: 0.9rem;
-  margin-left: 5px;
-  background: rgba(255, 255, 255, 0.05);
-  padding: 4px 10px;
-  border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  transition: all 0.3s ease;
-  
-  &:hover {
-    background: rgba(255, 255, 255, 0.08);
-    transform: translateY(-1px);
-  }
-`;
 
 
 const ScrollIndicatorContainer = styled.div`

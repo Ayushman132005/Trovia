@@ -1,13 +1,13 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import chatroomImg from '../assets/images/trek1.png';
 import { auth, db } from '../firebase';
-import { collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, doc, updateDoc, arrayUnion, getDoc, deleteDoc, getDocs, limit, startAfter } from 'firebase/firestore';
+import { collection, onSnapshot, query, orderBy, doc, updateDoc, arrayUnion, getDoc, getDocs, limit, startAfter } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import { initializeChatrooms } from '../utils/initializeChatrooms';
-import { FiUsers, FiMessageCircle, FiX, FiPlus, FiChevronLeft, FiChevronRight, FiMapPin, FiArrowRight, FiLock } from 'react-icons/fi';
+import { FiUsers, FiMessageCircle, FiX, FiPlus, FiArrowRight, FiLock } from 'react-icons/fi';
 import ImageOverlay from './ImageOverlay';
 import CreateCommunityModal from './CreateCommunityModal';
-import SEOHelmet, { CommunitySEO } from './SEO/SEOHelmet';
+import { CommunitySEO } from './SEO/SEOHelmet';
 import { CommunityRichSnippet } from './SEO/SEOUtils';
 import { 
   Page, PageContainer, Header, HeaderTitle, HeaderSubtitle, HeadingIconContainer,
@@ -25,25 +25,17 @@ const getValidImageUrl = (url) => {
 // The community component with all fixed issues
 const Community = () => {
   const [chatrooms, setChatrooms] = useState([]);
-  const [selectedRoom, setSelectedRoom] = useState(null);
-  const [messages, setMessages] = useState([]);
-  const [newMessage, setNewMessage] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [roomToDelete, setRoomToDelete] = useState(null);
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [isScrolling, setIsScrolling] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [lastVisible, setLastVisible] = useState(null);
   const [hasMore, setHasMore] = useState(true);
   const [isAuthChecking, setIsAuthChecking] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   
-  const scrollRef = useRef(null);
   const navigate = useNavigate();
 
   // Check if current user is an admin
