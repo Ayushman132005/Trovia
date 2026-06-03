@@ -9,6 +9,7 @@ import {
   FiPrinter, FiCalendar, FiCopy as FiClone, FiSettings, FiDownload, FiFileText
 } from 'react-icons/fi';
 import { QRCodeCanvas } from 'qrcode.react';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
 
 /* --- FONTS & GLOBAL STYLES --- */
 const GlobalStyle = createGlobalStyle`
@@ -40,9 +41,7 @@ const AdminContainer = styled.div`
   overflow-x: hidden;
 
   *, *::before, *::after { box-sizing: border-box; }
-
   @media (max-width: 768px) { padding: 20px 10px; }
-
   @media print {
     background: white; color: black; padding: 0;
     * { color: black !important; background: transparent !important; box-shadow: none !important; border-color: #ccc !important; }
@@ -53,69 +52,43 @@ const AdminContainer = styled.div`
 const FloatingHeader = styled.div`
   display: flex; justify-content: space-between; align-items: center;
   width: 100%; max-width: 1100px; margin-bottom: 40px;
-  background: rgba(255, 255, 255, 0.02);
-  backdrop-filter: blur(20px);
-  padding: 12px 20px; 
-  border-radius: 100px; 
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-  animation: ${fadeUp} 0.5s ease-out;
-  
-  @media (max-width: 768px) {
-    flex-direction: column; align-items: stretch; padding: 15px; gap: 15px; border-radius: 24px;
-  }
+  background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(20px);
+  padding: 12px 20px; border-radius: 100px; border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2); animation: ${fadeUp} 0.5s ease-out;
+  @media (max-width: 768px) { flex-direction: column; align-items: stretch; padding: 15px; gap: 15px; border-radius: 24px; }
 `;
 
 const TabGroup = styled.div`
   display: flex; gap: 8px;
-  
-  @media (max-width: 768px) {
-    overflow-x: auto; flex-wrap: nowrap; padding-bottom: 4px;
-    -ms-overflow-style: none; scrollbar-width: none;
-    &::-webkit-scrollbar { display: none; }
-  }
+  @media (max-width: 768px) { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 4px; -ms-overflow-style: none; scrollbar-width: none; &::-webkit-scrollbar { display: none; } }
 `;
 
 const TabButton = styled.button`
   padding: 12px 24px; border-radius: 50px; border: none; 
   background: ${props => props.$active ? 'var(--accent)' : 'transparent'};
   color: ${props => props.$active ? 'white' : '#94a3b8'}; 
-  font-weight: 600; font-size: 0.95rem; 
-  display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  white-space: nowrap; flex-shrink: 0; 
-  box-shadow: ${props => props.$active ? '0 4px 15px var(--accent-alpha)' : 'none'};
-
-  &:hover { 
-    color: white; 
-    background: ${props => props.$active ? 'var(--accent-hover)' : 'rgba(255,255,255,0.05)'}; 
-    transform: ${props => props.$active ? 'translateY(-2px)' : 'none'};
-  }
+  font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap; flex-shrink: 0; box-shadow: ${props => props.$active ? '0 4px 15px var(--accent-alpha)' : 'none'};
+  &:hover { color: white; background: ${props => props.$active ? 'var(--accent-hover)' : 'rgba(255,255,255,0.05)'}; transform: ${props => props.$active ? 'translateY(-2px)' : 'none'}; }
   @media (max-width: 600px) { padding: 10px 16px; font-size: 0.85rem; flex: 1; border-radius: 14px; }
 `;
 
 const ControlsGroup = styled.div`
   display: flex; align-items: center; gap: 15px;
-  
-  @media (max-width: 768px) {
-    justify-content: space-between; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 15px;
-  }
+  @media (max-width: 768px) { justify-content: space-between; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 15px; }
 `;
 
 const ThemePicker = styled.div`
   display: flex; gap: 8px; align-items: center;
-  
   .dot { width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: all 0.2s; flex-shrink: 0; opacity: 0.6; }
   .dot:hover { opacity: 1; transform: scale(1.1); }
   .dot.active { border-color: white; transform: scale(1.15); box-shadow: 0 0 12px var(--accent-alpha); opacity: 1; }
 `;
 
 const FormCard = styled.div`
-  width: 100%; max-width: 1100px; 
-  background: rgba(15, 17, 26, 0.6); backdrop-filter: blur(24px); 
+  width: 100%; max-width: 1100px; background: rgba(15, 17, 26, 0.6); backdrop-filter: blur(24px); 
   border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 28px; padding: 45px; 
-  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255,255,255,0.05); 
-  animation: ${fadeUp} 0.6s ease-out 0.1s both;
-
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255,255,255,0.05); animation: ${fadeUp} 0.6s ease-out 0.1s both;
   @media (max-width: 768px) { padding: 25px 15px; border-radius: 20px; }
 `;
 
@@ -125,8 +98,7 @@ const TitleHeader = styled.div`
 `;
 
 const Title = styled.h2`
-  font-size: 2.2rem; font-weight: 800; margin: 0; display: flex; align-items: center; gap: 12px; color: white; flex-wrap: wrap;
-  letter-spacing: -0.5px;
+  font-size: 2.2rem; font-weight: 800; margin: 0; display: flex; align-items: center; gap: 12px; color: white; flex-wrap: wrap; letter-spacing: -0.5px;
   svg { color: var(--accent); flex-shrink: 0; filter: drop-shadow(0 0 10px var(--accent-alpha)); }
   @media (max-width: 768px) { font-size: 1.6rem; gap: 8px; }
 `;
@@ -143,35 +115,18 @@ const StatsGrid = styled.div`
 
 const StatBox = styled.div`
   background: linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%); 
-  border: 1px solid rgba(255, 255, 255, 0.05); padding: 24px; border-radius: 20px; 
-  display: flex; flex-direction: column; gap: 8px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-  transition: transform 0.3s ease;
-  
+  border: 1px solid rgba(255, 255, 255, 0.05); padding: 24px; border-radius: 20px; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); transition: transform 0.3s ease;
   &:hover { transform: translateY(-3px); background: linear-gradient(145deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.02) 100%); }
-  
   h3 { margin: 0; font-size: 2.2rem; color: ${props => props.$color || 'white'}; font-weight: 800; line-height: 1; }
   p { margin: 0; font-size: 0.8rem; color: #64748b; text-transform: uppercase; font-weight: 700; display: flex; align-items: center; gap: 8px; letter-spacing: 1px; }
-  
-  @media (max-width: 600px) { 
-    padding: 16px 20px; flex-direction: row; justify-content: space-between; align-items: center; border-radius: 16px;
-    h3 { font-size: 1.6rem; } 
-  }
+  @media (max-width: 600px) { padding: 16px 20px; flex-direction: row; justify-content: space-between; align-items: center; border-radius: 16px; h3 { font-size: 1.6rem; } }
 `;
 
 const Toolbar = styled.div`
   display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 15px; margin-bottom: 25px; width: 100%;
-  
-  .search-box { 
-    display: flex; align-items: center; background: rgba(0,0,0,0.4); border-radius: 14px; padding: 0 18px; 
-    border: 1px solid rgba(255,255,255,0.08); width: 100%; min-width: 0; transition: all 0.2s;
-  }
-  select { 
-    padding: 14px 18px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255, 255, 255, 0.08); 
-    border-radius: 14px; color: white; outline: none; width: 100%; min-width: 0; appearance: none; cursor: pointer; transition: all 0.2s; 
-  }
+  .search-box { display: flex; align-items: center; background: rgba(0,0,0,0.4); border-radius: 14px; padding: 0 18px; border: 1px solid rgba(255,255,255,0.08); width: 100%; min-width: 0; transition: all 0.2s; }
+  select { padding: 14px 18px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 14px; color: white; outline: none; width: 100%; min-width: 0; appearance: none; cursor: pointer; transition: all 0.2s; }
   select:focus, .search-box:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-alpha); background: rgba(0,0,0,0.6); }
-  
   @media (max-width: 768px) { grid-template-columns: 1fr 1fr; .search-box { grid-column: 1 / -1; } }
   @media (max-width: 500px) { grid-template-columns: 1fr; select { padding: 14px; } }
 `;
@@ -212,64 +167,42 @@ const Toast = styled.div`
 const InternList = styled.div`display: flex; flex-direction: column; gap: 20px; width: 100%;`;
 
 const InternCard = styled.div`
-  background: ${props => props.$selected ? 'var(--accent-alpha)' : 'rgba(255, 255, 255, 0.01)'}; 
-  backdrop-filter: blur(10px);
+  background: ${props => props.$selected ? 'var(--accent-alpha)' : 'rgba(255, 255, 255, 0.01)'}; backdrop-filter: blur(10px);
   border: 1px solid ${props => props.$selected ? 'var(--accent)' : 'rgba(255, 255, 255, 0.05)'}; 
-  padding: 28px; border-radius: 20px; display: flex; flex-direction: column; gap: 24px; transition: all 0.3s ease;
-  opacity: ${props => props.$isRevoked ? 0.5 : 1}; width: 100%;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-  
+  padding: 28px; border-radius: 20px; display: flex; flex-direction: column; gap: 24px; transition: all 0.3s ease; opacity: ${props => props.$isRevoked ? 0.5 : 1}; width: 100%; box-shadow: 0 10px 30px rgba(0,0,0,0.1);
   &:hover { background: rgba(255, 255, 255, 0.03); border-color: rgba(255,255,255,0.15); opacity: 1; transform: translateY(-2px); box-shadow: 0 15px 35px rgba(0,0,0,0.25);}
-  
   @media (min-width: 900px) { flex-direction: row; align-items: center; justify-content: space-between; }
   @media (max-width: 768px) { padding: 20px; gap: 20px; border-radius: 16px; }
 `;
 
-const Checkbox = styled.input.attrs({ type: 'checkbox' })`
-  width: 24px; height: 24px; cursor: pointer; accent-color: var(--accent); flex-shrink: 0; margin-top: 2px;
-`;
+const Checkbox = styled.input.attrs({ type: 'checkbox' })`width: 24px; height: 24px; cursor: pointer; accent-color: var(--accent); flex-shrink: 0; margin-top: 2px;`;
 
 const InternInfo = styled.div`
   flex: 1; display: flex; align-items: flex-start; gap: 16px; width: 100%; min-width: 0;
-  
   .content { flex: 1; min-width: 0; word-break: break-word; }
   h4 { margin: 0 0 6px 0; font-size: 1.3rem; color: white; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;}
   p { margin: 0 0 12px 0; color: #94a3b8; font-size: 0.95rem; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   .cert-id { font-family: 'Space Mono', monospace; color: var(--accent); font-size: 0.85rem; margin-top: 14px; word-break: break-all; background: var(--accent-alpha); display: inline-block; padding: 4px 10px; border-radius: 6px; }
   .skills-container { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
   .skill-badge { background: rgba(255,255,255,0.05); padding: 6px 12px; border-radius: 50px; font-size: 0.75rem; color: #e2e8f0; border: 1px solid rgba(255,255,255,0.08); letter-spacing: 0.5px; }
-
   @media (max-width: 768px) { h4 { font-size: 1.15rem; } p { font-size: 0.85rem; } }
 `;
 
 const StatusBadge = styled.span`
   font-size: 0.7rem; padding: 6px 12px; border-radius: 50px; font-weight: 800; text-transform: uppercase; white-space: nowrap; letter-spacing: 1px;
-  background: ${props => props.$valid ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)'}; 
-  color: ${props => props.$valid ? '#34d399' : '#f87171'}; 
-  border: 1px solid ${props => props.$valid ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'};
-  animation: ${props => props.$valid ? pulseGlowValid : 'none'} 2s infinite;
+  background: ${props => props.$valid ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)'}; color: ${props => props.$valid ? '#34d399' : '#f87171'}; border: 1px solid ${props => props.$valid ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}; animation: ${props => props.$valid ? pulseGlowValid : 'none'} 2s infinite;
 `;
 
 const QRContainer = styled.div`
-  display: flex; flex-direction: column; align-items: center; gap: 10px; flex-shrink: 0;
-  background: rgba(0,0,0,0.3); padding: 12px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05);
-
-  .qr-box { background: white; padding: 8px; border-radius: 10px; }
-  .qr-box canvas { width: 75px !important; height: 75px !important; } 
-  
-  .qr-download { 
-    background: transparent; border: none; color: var(--accent); cursor: pointer; 
-    font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 6px; padding: 4px; letter-spacing: 0.5px; transition: all 0.2s;
-    &:hover { color: white; transform: translateY(-1px); }
-  }
-
+  display: flex; flex-direction: column; align-items: center; gap: 10px; flex-shrink: 0; background: rgba(0,0,0,0.3); padding: 12px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05);
+  .qr-box { background: white; padding: 8px; border-radius: 10px; } .qr-box canvas { width: 75px !important; height: 75px !important; } 
+  .qr-download { background: transparent; border: none; color: var(--accent); cursor: pointer; font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 6px; padding: 4px; letter-spacing: 0.5px; transition: all 0.2s; &:hover { color: white; transform: translateY(-1px); } }
   @media (min-width: 900px) { .qr-box canvas { width: 85px !important; height: 85px !important; } }
 `;
 
 const CardActions = styled.div`
   display: flex; align-items: center; gap: 20px; width: 100%;
-  @media (min-width: 900px) { width: auto; }
-  @media (max-width: 600px) { flex-direction: row-reverse; justify-content: space-between; align-items: flex-start; gap: 15px; }
+  @media (min-width: 900px) { width: auto; } @media (max-width: 600px) { flex-direction: row-reverse; justify-content: space-between; align-items: flex-start; gap: 15px; }
 `;
 
 const ActionGroup = styled.div`
@@ -278,25 +211,16 @@ const ActionGroup = styled.div`
 `;
 
 const ActionButton = styled.button`
-  background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); color: white; 
-  padding: 10px 12px; border-radius: 10px; display: flex; align-items: center; justify-content: center; 
-  gap: 8px; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; white-space: nowrap; font-weight: 600;
-  flex: 1 1 calc(50% - 10px); 
-  
+  background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); color: white; padding: 10px 12px; border-radius: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; white-space: nowrap; font-weight: 600; flex: 1 1 calc(50% - 10px); 
   &:hover { background: rgba(255, 255, 255, 0.08); transform: translateY(-1px); }
-  &.danger { color: #fca5a5; }
-  &.danger:hover { background: rgba(239, 68, 68, 0.15); border-color: rgba(239, 68, 68, 0.4); }
-  &.success { color: #6ee7b7; }
-  &.success:hover { background: rgba(16, 185, 129, 0.15); border-color: rgba(16, 185, 129, 0.4); }
-  &.primary { background: var(--accent-alpha); border-color: var(--accent); color: white; }
-  &.primary:hover { background: var(--accent); }
-  
+  &.danger { color: #fca5a5; } &.danger:hover { background: rgba(239, 68, 68, 0.15); border-color: rgba(239, 68, 68, 0.4); }
+  &.success { color: #6ee7b7; } &.success:hover { background: rgba(16, 185, 129, 0.15); border-color: rgba(16, 185, 129, 0.4); }
+  &.primary { background: var(--accent-alpha); border-color: var(--accent); color: white; } &.primary:hover { background: var(--accent); }
   @media (min-width: 900px) { padding: 12px; font-size: 0.9rem; }
 `;
 
 const SmallLinkBtn = styled.button`
-  background: transparent; border: none; color: var(--accent); cursor: pointer; font-size: 0.8rem; font-weight: 700; padding: 0 6px; letter-spacing: 0.5px; transition: all 0.2s;
-  &:hover { color: white; text-shadow: 0 0 10px var(--accent-alpha); }
+  background: transparent; border: none; color: var(--accent); cursor: pointer; font-size: 0.8rem; font-weight: 700; padding: 0 6px; letter-spacing: 0.5px; transition: all 0.2s; &:hover { color: white; text-shadow: 0 0 10px var(--accent-alpha); }
 `;
 
 const Pagination = styled.div`
@@ -315,6 +239,8 @@ const THEMES = {
   rose: { main: '#f43f5e', hover: '#e11d48', alpha: 'rgba(244, 63, 94, 0.2)' },
   orange: { main: '#f97316', hover: '#ea580c', alpha: 'rgba(249, 115, 22, 0.2)' }
 };
+
+
 
 const CertificateAdmin = () => {
   const BASE_DOMAIN = "https://trovia.in"; 
@@ -342,11 +268,35 @@ const CertificateAdmin = () => {
 
   const initialFormState = { certificateId: generateId(), internName: '', role: '', startDate: '', endDate: '', issueDate: getToday(), skills: '' };
   const [formData, setFormData] = useState(initialFormState);
+  const [adminEmail, setAdminEmail] = useState(null);
 
-  // Load Draft from LocalStorage
+// Add this useEffect to listen for who is logged in:
   useEffect(() => {
-    const draft = localStorage.getItem('trovia_cert_draft');
-    if (draft && viewMode === 'generate') setFormData(JSON.parse(draft));
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setAdminEmail(user.email); // Save the logged-in user's email
+      } else {
+        setAdminEmail(null); // No one is logged in
+      }
+    });
+    
+    return () => unsubscribe(); // Cleanup listener on unmount
+  }, []);
+  // FAULT TOLERANCE: Safe Draft Loading
+  useEffect(() => {
+    if (viewMode === 'generate') {
+      try {
+        const draft = localStorage.getItem('trovia_cert_draft');
+        if (draft) {
+          const parsed = JSON.parse(draft);
+          if (typeof parsed === 'object') setFormData(parsed);
+        }
+      } catch (err) {
+        console.error("Corrupted draft found. Clearing local storage.");
+        localStorage.removeItem('trovia_cert_draft');
+      }
+    }
   }, [viewMode]);
 
   const showToast = (type, text) => {
@@ -361,7 +311,7 @@ const CertificateAdmin = () => {
       const data = querySnapshot.docs.map(doc => doc.data());
       setInternsList(data);
     } catch (error) { 
-      showToast('error', "Failed to fetch API data.");
+      showToast('error', "Failed to fetch API data. Check connection & permissions.");
     } finally { setFetchingList(false); }
   };
 
@@ -385,7 +335,7 @@ const CertificateAdmin = () => {
   };
 
   const validateForm = () => {
-    if (!formData.internName.trim() || !formData.role.trim()) return "Name and Role are required.";
+    if (!(formData.internName || '').trim() || !(formData.role || '').trim()) return "Name and Role are required.";
     return null;
   };
 
@@ -396,9 +346,10 @@ const CertificateAdmin = () => {
 
     setLoading(true); setToast(null);
     try {
-      const skillsArray = typeof formData.skills === 'string' 
-        ? formData.skills.split(',').map(s => s.trim()).filter(s => s !== "")
-        : formData.skills;
+      const skillsInput = formData.skills || '';
+      const skillsArray = typeof skillsInput === 'string' 
+        ? skillsInput.split(',').map(s => s.trim()).filter(s => s !== "")
+        : (Array.isArray(skillsInput) ? skillsInput : []);
 
       const finalData = { ...formData, skills: skillsArray, status: viewMode === 'edit' ? formData.status : 'valid' };
       
@@ -410,16 +361,20 @@ const CertificateAdmin = () => {
       if (viewMode === 'edit') setViewMode('list');
       else setFormData({ ...initialFormState, certificateId: generateId() });
       
-    } catch (error) { showToast('error', "Database error. Failed to save."); } 
-    finally { setLoading(false); }
+    } catch (error) { 
+        showToast('error', "Database error. Failed to save."); 
+        console.error(error);
+    } finally { setLoading(false); }
   };
 
   const updateStatus = async (certId, newStatus) => {
+    if (!certId) return;
     try { await updateDoc(doc(db, "certificates", certId), { status: newStatus }); fetchInterns(); showToast('success', `Status changed to ${newStatus}.`); } 
     catch (e) { showToast('error', "Update failed."); }
   };
 
   const handleDelete = async (certId) => {
+    if (!certId) return;
     if (window.confirm("DANGER: Permanently delete this record? This cannot be undone.")) {
       try { await deleteDoc(doc(db, "certificates", certId)); fetchInterns(); showToast('success', 'Record deleted permanently.'); } 
       catch (e) { showToast('error', "Failed to delete."); }
@@ -440,70 +395,112 @@ const CertificateAdmin = () => {
   };
 
   const handleClone = (intern) => {
-    const clonedData = { ...intern, certificateId: generateId(), issueDate: getToday(), skills: intern.skills.join(', ') };
+    // FAULT TOLERANCE: Safe array join
+    const safeSkills = Array.isArray(intern.skills) ? intern.skills.join(', ') : (intern.skills || '');
+    const clonedData = { ...intern, certificateId: generateId(), issueDate: getToday(), skills: safeSkills };
     setFormData(clonedData); setViewMode('generate');
     showToast('success', 'Data copied. Ready to generate new ID.');
   };
 
-  const copyLink = (certId) => { navigator.clipboard.writeText(`${BASE_DOMAIN}/verify/${certId}`); showToast('success', "Link copied to clipboard!"); };
-  const openLink = (certId) => window.open(`${BASE_DOMAIN}/verify/${certId}`, "_blank");
+  // FAULT TOLERANCE: Safe Clipboard Access
+  const copyLink = async (certId) => { 
+    try {
+      await navigator.clipboard.writeText(`${BASE_DOMAIN}/verify/${certId}`); 
+      showToast('success', "Link copied to clipboard!"); 
+    } catch (err) {
+      showToast('error', "Failed to copy. Browser permission denied.");
+    }
+  };
+  
+  const openLink = (certId) => { if (certId) window.open(`${BASE_DOMAIN}/verify/${certId}`, "_blank"); };
 
   // Feature: Download QR Code as Image
   const downloadQR = (certId, internName) => {
-    const canvas = document.getElementById(`qr-${certId}`);
-    if (!canvas) return showToast('error', 'QR Code not found.');
-    
-    const pngUrl = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
-    const downloadLink = document.createElement("a");
-    downloadLink.href = pngUrl;
-    downloadLink.download = `${internName.replace(/\s+/g, '_')}_QR.png`;
-    document.body.appendChild(downloadLink);
-    downloadLink.click();
-    document.body.removeChild(downloadLink);
-    showToast('success', 'QR Code downloaded!');
+    try {
+      const canvas = document.getElementById(`qr-${certId}`);
+      if (!canvas) throw new Error("Canvas not found");
+      
+      const safeName = (internName || 'Intern').replace(/\s+/g, '_');
+      const pngUrl = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
+      
+      const downloadLink = document.createElement("a");
+      downloadLink.href = pngUrl;
+      downloadLink.download = `${safeName}_QR.png`;
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+      showToast('success', 'QR Code downloaded!');
+    } catch (err) {
+      showToast('error', 'Failed to generate QR Code image.');
+    }
   };
 
-  // Feature: Export to CSV
+  // FAULT TOLERANCE: Safe CSV Escaping
   const exportToCSV = () => {
     if (internsList.length === 0) return showToast('warn', 'No data to export.');
+    
+    // Helper to safely wrap values with internal commas or quotes
+    const escapeCSV = (val) => `"${String(val || '').replace(/"/g, '""')}"`;
+
     const headers = ["Certificate ID", "Intern Name", "Role", "Start Date", "End Date", "Issue Date", "Status", "Skills"];
     const csvRows = [
       headers.join(","),
-      ...internsList.map(i => [
-        i.certificateId, `"${i.internName}"`, `"${i.role}"`, i.startDate, i.endDate, i.issueDate, i.status, `"${i.skills.join(', ')}"`
-      ].join(","))
+      ...internsList.map(i => {
+        const safeSkills = Array.isArray(i.skills) ? i.skills.join(', ') : (i.skills || '');
+        return [
+          escapeCSV(i.certificateId), escapeCSV(i.internName), escapeCSV(i.role), 
+          escapeCSV(i.startDate), escapeCSV(i.endDate), escapeCSV(i.issueDate), 
+          escapeCSV(i.status), escapeCSV(safeSkills)
+        ].join(",");
+      })
     ];
     
-    const blob = new Blob([csvRows.join("\n")], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.setAttribute('href', url);
-    a.setAttribute('download', `Certificates_Export_${getToday().replace(/\s/g, '_')}.csv`);
-    a.click();
-    showToast('success', 'Database exported to CSV.');
+    try {
+      const blob = new Blob([csvRows.join("\n")], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.setAttribute('href', url);
+      a.setAttribute('download', `Certificates_Export_${getToday().replace(/\s/g, '_')}.csv`);
+      a.click();
+      showToast('success', 'Database exported to CSV.');
+    } catch (err) {
+      showToast('error', 'Failed to build CSV file.');
+    }
   };
 
-  // Filtering and Sorting Logic
+  // FAULT TOLERANCE: Safe Filtering and Sorting (Prevents null crashes)
   let processedInterns = internsList.filter(intern => {
-    const matchesSearch = intern.internName.toLowerCase().includes(searchTerm.toLowerCase()) || intern.certificateId.toLowerCase().includes(searchTerm.toLowerCase());
+    const safeSearchTerm = (searchTerm || '').toLowerCase();
+    const safeName = (intern.internName || '').toLowerCase();
+    const safeId = (intern.certificateId || '').toLowerCase();
+    
+    const matchesSearch = safeName.includes(safeSearchTerm) || safeId.includes(safeSearchTerm);
     const matchesStatus = filterStatus === 'all' || intern.status === filterStatus;
     return matchesSearch && matchesStatus;
   });
 
-  if (sortBy === 'newest') processedInterns.sort((a, b) => new Date(b.issueDate) - new Date(a.issueDate));
-  if (sortBy === 'oldest') processedInterns.sort((a, b) => new Date(a.issueDate) - new Date(b.issueDate));
-  if (sortBy === 'az') processedInterns.sort((a, b) => a.internName.localeCompare(b.internName));
-  if (sortBy === 'za') processedInterns.sort((a, b) => b.internName.localeCompare(a.internName));
+  if (sortBy === 'newest') processedInterns.sort((a, b) => new Date(b.issueDate || 0) - new Date(a.issueDate || 0));
+  if (sortBy === 'oldest') processedInterns.sort((a, b) => new Date(a.issueDate || 0) - new Date(b.issueDate || 0));
+  if (sortBy === 'az') processedInterns.sort((a, b) => (a.internName || '').localeCompare(b.internName || ''));
+  if (sortBy === 'za') processedInterns.sort((a, b) => (b.internName || '').localeCompare(a.internName || ''));
 
   const totalPages = Math.ceil(processedInterns.length / ITEMS_PER_PAGE);
-  const paginatedInterns = processedInterns.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+  
+  // FAULT TOLERANCE: Prevent Pagination Black Holes
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(1);
+    }
+  }, [totalPages, currentPage]);
+
+  const safeCurrentPage = Math.min(currentPage, Math.max(1, totalPages));
+  const paginatedInterns = processedInterns.slice((safeCurrentPage - 1) * ITEMS_PER_PAGE, safeCurrentPage * ITEMS_PER_PAGE);
 
   const stats = { total: internsList.length, valid: internsList.filter(i => i.status === 'valid').length, revoked: internsList.filter(i => i.status === 'revoked').length };
 
   return (
     <AdminContainer $theme={THEMES[activeTheme]}>
       <GlobalStyle />
-      {/* Sleek Floating Header */}
       <FloatingHeader className="no-print">
         <TabGroup>
           <TabButton $active={viewMode === 'generate'} onClick={() => setViewMode('generate')}><FiPlus /> Generate</TabButton>
@@ -537,15 +534,15 @@ const CertificateAdmin = () => {
             </TitleHeader>
             
             <FormGrid onSubmit={handleSubmit} className="no-print">
-              <FormGroup><Label>Certificate ID</Label><Input type="text" name="certificateId" value={formData.certificateId} disabled={viewMode === 'edit'} onChange={handleChange} required $mono /></FormGroup>
-              <FormGroup><Label>Date of Issue</Label><Input type="text" name="issueDate" value={formData.issueDate} onChange={handleChange} required /></FormGroup>
+              <FormGroup><Label>Certificate ID</Label><Input type="text" name="certificateId" value={formData.certificateId || ''} disabled={viewMode === 'edit'} onChange={handleChange} required $mono /></FormGroup>
+              <FormGroup><Label>Date of Issue</Label><Input type="text" name="issueDate" value={formData.issueDate || ''} onChange={handleChange} required /></FormGroup>
               
-              <FormGroup $fullWidth><Label>Intern Full Name</Label><Input type="text" name="internName" value={formData.internName} onChange={handleChange} required placeholder="e.g., Jane Doe" /></FormGroup>
-              <FormGroup $fullWidth><Label>Internship Role / Title</Label><Input type="text" name="role" value={formData.role} onChange={handleChange} required placeholder="e.g., Software Engineering Intern" /></FormGroup>
+              <FormGroup $fullWidth><Label>Intern Full Name</Label><Input type="text" name="internName" value={formData.internName || ''} onChange={handleChange} required placeholder="e.g., Jane Doe" /></FormGroup>
+              <FormGroup $fullWidth><Label>Internship Role / Title</Label><Input type="text" name="role" value={formData.role || ''} onChange={handleChange} required placeholder="e.g., Software Engineering Intern" /></FormGroup>
               
               <FormGroup>
                 <Label>Start Date <SmallLinkBtn type="button" onClick={() => handleChange({target:{name:'startDate', value: getToday()}})}>Set Today</SmallLinkBtn></Label>
-                <Input type="text" name="startDate" value={formData.startDate} onChange={handleChange} required placeholder="DD Mmm YYYY" />
+                <Input type="text" name="startDate" value={formData.startDate || ''} onChange={handleChange} required placeholder="DD Mmm YYYY" />
               </FormGroup>
               <FormGroup>
                 <Label>End Date 
@@ -554,10 +551,10 @@ const CertificateAdmin = () => {
                     <SmallLinkBtn type="button" onClick={() => autoFillDuration(6)}>+6mo</SmallLinkBtn>
                   </span>
                 </Label>
-                <Input type="text" name="endDate" value={formData.endDate} onChange={handleChange} required placeholder="DD Mmm YYYY" />
+                <Input type="text" name="endDate" value={formData.endDate || ''} onChange={handleChange} required placeholder="DD Mmm YYYY" />
               </FormGroup>
               
-              <FormGroup $fullWidth><Label>Verified Skills (Comma Separated)</Label><Input type="text" name="skills" value={formData.skills} onChange={handleChange} required placeholder="React, Node.js, System Design" /></FormGroup>
+              <FormGroup $fullWidth><Label>Verified Skills (Comma Separated)</Label><Input type="text" name="skills" value={formData.skills || ''} onChange={handleChange} required placeholder="React, Node.js, System Design" /></FormGroup>
               
               {toast && <Toast $type={toast.type}>{toast.type === 'error' ? <FiXCircle/> : <FiCheckCircle/>}{toast.text}</Toast>}
               
@@ -618,30 +615,33 @@ const CertificateAdmin = () => {
             ) : (
               <InternList>
                 {paginatedInterns.map((intern) => (
-                  <InternCard key={intern.certificateId} $isRevoked={intern.status === 'revoked'} $selected={selectedIds.includes(intern.certificateId)}>
+                  <InternCard key={intern.certificateId || Math.random()} $isRevoked={intern.status === 'revoked'} $selected={selectedIds.includes(intern.certificateId)}>
                     
                     <InternInfo>
                       <div className="no-print">
                         <Checkbox checked={selectedIds.includes(intern.certificateId)} onChange={() => {
+                          if(!intern.certificateId) return;
                           setSelectedIds(prev => prev.includes(intern.certificateId) ? prev.filter(id => id !== intern.certificateId) : [...prev, intern.certificateId]);
                         }}/>
                       </div>
                       <div className="content">
-                        <h4>{intern.internName} <StatusBadge $valid={intern.status === 'valid'}>{intern.status}</StatusBadge></h4>
-                        <p><FiAward style={{color:'var(--accent)', flexShrink: 0}}/> {intern.role} &nbsp;•&nbsp; <FiCalendar style={{color:'var(--accent)', flexShrink: 0}}/> {intern.startDate} to {intern.endDate}</p>
+                        <h4>{intern.internName || 'Unnamed Record'} <StatusBadge $valid={intern.status === 'valid'}>{intern.status || 'UNKNOWN'}</StatusBadge></h4>
+                        <p><FiAward style={{color:'var(--accent)', flexShrink: 0}}/> {intern.role || 'No Role'} &nbsp;•&nbsp; <FiCalendar style={{color:'var(--accent)', flexShrink: 0}}/> {intern.startDate || 'N/A'} to {intern.endDate || 'N/A'}</p>
                         <div className="skills-container">
-                          {intern.skills.map(s => <span key={s} className="skill-badge">{s}</span>)}
+                          {Array.isArray(intern.skills) ? intern.skills.map(s => <span key={s} className="skill-badge">{s}</span>) : null}
                         </div>
-                        <div className="cert-id">ID: {intern.certificateId}</div>
+                        <div className="cert-id">ID: {intern.certificateId || 'MISSING-ID'}</div>
                       </div>
                     </InternInfo>
 
                     <CardActions className="no-print">
                       <QRContainer>
                         <div className="qr-box">
-                          <QRCodeCanvas id={`qr-${intern.certificateId}`} value={`${BASE_DOMAIN}/verify/${intern.certificateId}`} size={85} level={"H"} includeMargin={false} />
+                          {intern.certificateId ? (
+                            <QRCodeCanvas id={`qr-${intern.certificateId}`} value={`${BASE_DOMAIN}/verify/${intern.certificateId}`} size={85} level={"H"} includeMargin={false} />
+                          ) : <div style={{width: 85, height: 85, background:'#eee'}}/>}
                         </div>
-                        <button className="qr-download" onClick={() => downloadQR(intern.certificateId, intern.internName)} title="Download PNG">
+                        <button className="qr-download" onClick={() => downloadQR(intern.certificateId, intern.internName)} title="Download PNG" disabled={!intern.certificateId}>
                           <FiDownload /> Save QR
                         </button>
                       </QRContainer>
@@ -650,14 +650,24 @@ const CertificateAdmin = () => {
                         <ActionButton onClick={() => copyLink(intern.certificateId)} title="Copy URL"><FiCopy /> Link</ActionButton>
                         <ActionButton onClick={() => openLink(intern.certificateId)} title="View Portal"><FiExternalLink /> Open</ActionButton>
                         <ActionButton onClick={() => handleClone(intern)} title="Clone Data"><FiClone /> Clone</ActionButton>
-                        <ActionButton onClick={() => {setFormData({...intern, skills: intern.skills.join(', ')}); setViewMode('edit');}}><FiEdit2 /> Edit</ActionButton>
+                        <ActionButton onClick={() => {
+                          const safeSkills = Array.isArray(intern.skills) ? intern.skills.join(', ') : (intern.skills || '');
+                          setFormData({...intern, skills: safeSkills}); 
+                          setViewMode('edit');
+                        }}><FiEdit2 /> Edit</ActionButton>
                         
                         {intern.status === 'valid' ? (
                           <ActionButton className="danger" onClick={() => updateStatus(intern.certificateId, 'revoked')}><FiSlash /> Revoke</ActionButton>
                         ) : (
                           <ActionButton className="success" onClick={() => updateStatus(intern.certificateId, 'valid')}><FiCheckCircle /> Restore</ActionButton>
                         )}
-                        {/* <ActionButton className="danger" onClick={() => handleDelete(intern.certificateId)}><FiTrash2 /> Delete</ActionButton> */}
+
+                        {/* THE CONDITIONAL DELETE BUTTON */}
+                        {adminEmail === 'ayushmanpatel13@gmail.com' && (
+                          <ActionButton className="danger" onClick={() => handleDelete(intern.certificateId)}>
+                            <FiTrash2 /> Delete
+                          </ActionButton>
+                        )}
                       </ActionGroup>
                     </CardActions>
                   </InternCard>
@@ -667,9 +677,9 @@ const CertificateAdmin = () => {
 
             {totalPages > 1 && (
               <Pagination className="no-print">
-                <button disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)}>Previous</button>
-                <span>Page {currentPage} of {totalPages}</span>
-                <button disabled={currentPage === totalPages} onClick={() => setCurrentPage(p => p + 1)}>Next</button>
+                <button disabled={safeCurrentPage === 1} onClick={() => setCurrentPage(p => p - 1)}>Previous</button>
+                <span>Page {safeCurrentPage} of {totalPages}</span>
+                <button disabled={safeCurrentPage === totalPages} onClick={() => setCurrentPage(p => p + 1)}>Next</button>
               </Pagination>
             )}
           </>
