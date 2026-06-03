@@ -10,6 +10,7 @@ import {
 import { QRCodeCanvas } from 'qrcode.react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
+import certificateTemplate from '../assets/images/blank-certificate.png';
 
 /* --- FONTS & GLOBAL STYLES --- */
 const GlobalFonts = createGlobalStyle`
@@ -315,8 +316,16 @@ const VerifyCertificate = () => {
 
     // 2. Load the image from the public folder
     const img = new Image();
-    img.src = '/blank-certificate.png'; // Points to public/blank-certificate.png
     
+    img.crossOrigin = "Anonymous"; 
+    
+    // Feed the imported variable directly here, NOT a string!
+    img.src = certificateTemplate; 
+    
+    img.onerror = () => {
+      alert("Error: Still failing to load image. Check console for details.");
+    };
+
     // 3. Wait for the image to load, THEN draw the PDF
     img.onload = () => {
       // Draw background
